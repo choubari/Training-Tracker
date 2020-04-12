@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <integer name="login">100</integer>
+    <integer name="register_form_finished">200</integer>
+</resources>

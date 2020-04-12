@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "7653721471",
+    "firebase_url": "https://trackingtraining-ff626.firebaseio.com",
+    "project_id": "trackingtraining-ff626",
+    "storage_bucket": "trackingtraining-ff626.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:7653721471:android:89171c44407784cdb1464a",
+        "android_client_info": {
+          "package_name": "com.choubapp.running"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "7653721471-h4t8rghib5ig5ohmqvomlc3lhv4ldecl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.choubapp.running",
+            "certificate_hash": "46b4fea630aff146f6417eb75bdf72bc283f1bcd"
+          }
+        },
+        {
+          "client_id": "7653721471-8c29s2u4s9tj9p1ppkblaqbujk98a7qp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8qJy_p2XFSq2uQOUj1hUkxYRa0FLUt1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "7653721471-8c29s2u4s9tj9p1ppkblaqbujk98a7qp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
