@@ -34,13 +34,14 @@ import java.util.EnumMap;
 
 public class DashboardActivity extends AppCompatActivity {
    static final String USER_DATA = "com.choubapp.running.USER_DATA";
+   static final String USER_TEAM = "com.choubapp.running.USER_TEAM";
     //private final String IMAGE_URL = "PictureUploads/1585506259357.jpg";
    // StorageReference picref =FirebaseStorage.getInstance().getReference("PictureUploads");
     //StorageReference pathReference = picref.child("1585506259357.jpg");
     ImageView profilpic;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
-    String Email;
+    String Email,Team;
     String doc_id ;
     //Map<String, Object> UserMap;
     //Membre User;
@@ -73,14 +74,15 @@ public class DashboardActivity extends AppCompatActivity {
                              //     docfound = true;
                                   Log.d("TAG", document.getId() + " => " + document.getData());
                                   //-- UserMap=document.getData();
-                               /* FullName=document.get("Nom Complet").toString();
+                               /* FullName=document.get("FullName").toString();
                                 Email=document.get("Email").toString();
                                 Username=document.get("Username").toString();
                                 Password=document.get("Password").toString();
                                 Date=document.get("Date de Naissance").toString();*/
-                                  DisplayName.setText(document.get("Nom Complet").toString());
+                                  DisplayName.setText(document.get("FullName").toString());
                                   DisplayUsername.setText("@" + document.get("Username").toString());
                                   doc_id = document.getId();
+                                  Team=document.get("Team").toString();
                                   findViewById(R.id.loadingPanel).setVisibility(View.GONE);
                                   findViewById(R.id.header).setVisibility(View.VISIBLE);
                                   findViewById(R.id.big_screen).setVisibility(View.VISIBLE);
@@ -113,6 +115,7 @@ public class DashboardActivity extends AppCompatActivity {
     // Executed when Calendar button pressed
     public void Calendar(View v) {
         Intent intent = new Intent(this, CalendarActivity.class);
+        intent.putExtra(USER_TEAM,Team);
         startActivity(intent);
     }
 
@@ -120,6 +123,7 @@ public class DashboardActivity extends AppCompatActivity {
     // Executed when Training button pressed
     public void Training(View v) {
         Intent intent = new Intent(this, TrainingActivity.class);
+        intent.putExtra(USER_TEAM,Team);
         startActivity(intent);
     }
 
@@ -127,6 +131,7 @@ public class DashboardActivity extends AppCompatActivity {
     // Executed when Messages button pressed
     public void Messages(View v) {
         Intent intent = new Intent(this, MessagesActivity.class);
+        intent.putExtra(USER_TEAM,Team);
         startActivity(intent);
     }
 

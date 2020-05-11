@@ -75,12 +75,11 @@ public class CoachSettingsActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-                        String p= document.getData().toString();
-                        DisplayName.setText(document.get("Nom Complet").toString());
+                        DisplayName.setText(document.get("FullName").toString());
                         DisplayUsername.setText(document.get("Username").toString());
                         DisplayEmail.setText(document.get("Email").toString());
                         DisplayPassword.setText(document.get("Password").toString());
-                        DisplayDate.setText(document.get("Date de Naissance").toString());
+                        DisplayDate.setText(document.get("Birth").toString());
                         Log.d("TAG", "DocumentSnapshot data: " + document.getData());
                     }
                 }
@@ -288,11 +287,11 @@ public class CoachSettingsActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             db.collection("coach").document(DocID).update(
-                    "Nom Complet", FullName,
+                    "FullName", FullName,
                     "Email", Email,
                     "Username", Username,
                     "Password", Password,
-                    "Date de Naissance", Date
+                    "Birth", Date
             );
             Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).show();
             BacktoDashboard(v);

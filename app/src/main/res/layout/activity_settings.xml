@@ -100,14 +100,12 @@
         android:hint="Username"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        app:boxBackgroundColor="#cccccc"
         app:boxStrokeColor="@color/colorPrimary"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edit_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
             android:textIsSelectable="false"
             android:imeOptions="actionNext"
             android:inputType="textEmailAddress"
@@ -116,13 +114,13 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Coach Username"
+            android:hint="ID de l'équipe"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             app:boxStrokeColor="@color/colorPrimary"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edit_coach_username"
+                android:id="@+id/edit_team_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textIsSelectable="false"
@@ -135,12 +133,14 @@
         android:hint="Email"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
+        app:boxBackgroundColor="#cccccc"
         app:boxStrokeColor="@color/colorPrimary"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edit_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:textIsSelectable="false"
             android:imeOptions="actionNext"
             android:inputType="textEmailAddress"

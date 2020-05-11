@@ -60,8 +60,8 @@ public class SettingsActivity extends AppCompatActivity {
     private Uri mImageUri;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
-    TextView DisplayName, DisplayUsername,DisplayCoach,DisplayEmail,DisplayPassword,DisplayDate;
-    private String FullName, Username, Email,Password,Date,CoachUsername;
+    TextView DisplayName, DisplayUsername,DisplayTeamID,DisplayEmail,DisplayPassword,DisplayDate;
+    private String FullName, Username, Email,Password,Date,TeamID;
     private String Gender;
     String DocID;
    /* Membre UserData;
@@ -83,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
         DisplayName = (TextView) findViewById(R.id.edit_fullname);
         DisplayUsername = (TextView) findViewById(R.id.edit_username);
-        DisplayCoach = (TextView) findViewById(R.id.edit_coach_username);
+        DisplayTeamID = (TextView) findViewById(R.id.edit_team_id);
         DisplayEmail = (TextView) findViewById(R.id.edit_email);
         DisplayPassword = (TextView) findViewById(R.id.edit_password);
         DisplayDate = (TextView) findViewById(R.id.edit_DatePicker);
@@ -96,12 +96,12 @@ public class SettingsActivity extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
                         String p= document.getData().toString();
-                        DisplayName.setText(document.get("Nom Complet").toString());
+                        DisplayName.setText(document.get("FullName").toString());
                         DisplayUsername.setText(document.get("Username").toString());
-                        DisplayCoach.setText(document.get("Coach").toString());
+                        DisplayTeamID.setText(document.get("Team").toString());
                         DisplayEmail.setText(document.get("Email").toString());
                         DisplayPassword.setText(document.get("Password").toString());
-                        DisplayDate.setText(document.get("Date de Naissance").toString());
+                        DisplayDate.setText(document.get("Birth").toString());
                         Log.d("TAG", "DocumentSnapshot data: " + document.getData());
                     }
                 }
@@ -263,7 +263,7 @@ public class SettingsActivity extends AppCompatActivity {
         // Store values at the time of the login attempt.
         FullName = DisplayName.getText().toString();
         Username = DisplayUsername.getText().toString();
-        CoachUsername = DisplayCoach.getText().toString();
+        TeamID = DisplayTeamID.getText().toString();
         Email = DisplayEmail.getText().toString();
         Password = DisplayPassword.getText().toString();
         Date = DisplayDate.getText().toString();
@@ -311,12 +311,12 @@ public class SettingsActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             db.collection("member").document(DocID).update(
-                    "Nom Complet", FullName,
+                    "FullName", FullName,
                     "Email", Email,
                     "Username", Username,
                     "Password", Password,
-                    "Coach", CoachUsername,
-                    "Date de Naissance", Date
+                    "Team", TeamID,
+                    "Birth", Date
             );
             Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).show();
             BacktoDashboard(v);

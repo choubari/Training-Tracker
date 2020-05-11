@@ -67,9 +67,10 @@ public class CoachDashboardActivity extends AppCompatActivity {
         //GlideApp.with(this /* context */).load(pathReference).into(profilpic);
         final TextView DisplayName = (TextView) findViewById(R.id.name);
         final TextView DisplayUsername = (TextView) findViewById(R.id.username);
+        System.out.println("Email : "+Email);
         db.setFirestoreSettings(settings);
-        CollectionReference peopleRef = db.collection("coach");
-        peopleRef.whereEqualTo("Email", Email)
+        CollectionReference coach = db.collection("coach");
+        coach.whereEqualTo("Email", Email)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -77,7 +78,7 @@ public class CoachDashboardActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             for (DocumentSnapshot document : task.getResult()) {
                                 Log.d("TAG", document.getId() + " => " + document.getData());
-                                DisplayName.setText(document.get("Nom Complet").toString());
+                                DisplayName.setText(document.get("FullName").toString());
                                 DisplayUsername.setText("@" + document.get("Username").toString());
                                 doc_id = document.getId();
                                 findViewById(R.id.loadingPanel).setVisibility(View.GONE);
@@ -103,12 +104,14 @@ public class CoachDashboardActivity extends AppCompatActivity {
     // Executed when Calendar button pressed
     public void CoachReports(View v) {
         Intent intent = new Intent(CoachDashboardActivity.this, CoachReportsActivity.class);
+        intent.putExtra(USER_DATA, Email);
         startActivity(intent);
     }
 
     // Executed when Training button pressed
     public void CoachTraining(View v) {
         Intent intent = new Intent(this, CoachTrainingActivity.class);
+        intent.putExtra(USER_DATA, Email);
         startActivity(intent);
     }
 
@@ -116,6 +119,7 @@ public class CoachDashboardActivity extends AppCompatActivity {
     // Executed when Messages button pressed
     public void CoachMessages(View v) {
         Intent intent = new Intent(this, CoachMessagesActivity.class);
+        intent.putExtra(USER_DATA, Email);
         startActivity(intent);
     }
 
@@ -123,6 +127,7 @@ public class CoachDashboardActivity extends AppCompatActivity {
     // Executed when Tasks button pressed
     public void CoachMemberlist(View v) {
         Intent intent = new Intent(this, CoachMemberlistActivity.class);
+        intent.putExtra(USER_DATA, Email);
         startActivity(intent);
     }
 

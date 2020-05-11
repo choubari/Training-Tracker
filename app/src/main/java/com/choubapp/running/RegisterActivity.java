@@ -129,21 +129,22 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void pushtoRightCollection(){
         String fullname = mFullNameView.getText().toString();
-        String email = mEmailView.getText().toString();
+        String email = mEmailView.getText().toString().toLowerCase();
         String password = mPasswordView.getText().toString();
         String username = mUsernameView.getText().toString();
         // Create a new user
         Map<String, Object> user = new HashMap<>();
-        user.put("Nom Complet", fullname);
+        user.put("FullName", fullname);
         user.put("Email", email);
         user.put("Password", password);
         user.put("Username", username);
-        user.put("Date de Naissance",mDate);
+        user.put("Birth",mDate);
         RadioGroup Member_Coach= findViewById(R.id.member_coach);
         int selectedid=Member_Coach.getCheckedRadioButtonId();
         RadioButton UserSelected=findViewById(selectedid);
         String SelectedUser= UserSelected.getText().toString();
         if (SelectedUser.equals("Membre")) {
+            user.put("Team", "");
             // Add a new document with a generated ID
             db.collection("member")
                     .add(user)
@@ -262,7 +263,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
     // TODO: Create a Firebase user
     private  void  createFirebaseUser (){
-        String email = mEmailView.getText().toString();
+        String email = mEmailView.getText().toString().toLowerCase();
         String password = mPasswordView.getText().toString();
         Toast.makeText(this,"Registration in Progress...",Toast.LENGTH_SHORT).show();
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {

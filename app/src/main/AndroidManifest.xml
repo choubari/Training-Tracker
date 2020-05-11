@@ -4,22 +4,26 @@
     package="com.choubapp.running">
 
     <application
+        android:name=".LockOrientation"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CoachSettingsActivity"/>
+        <activity android:name=".CreateTraining"></activity>
+        <activity android:name=".CreateTeam" />
+        <activity android:name=".CoachSettingsActivity" />
         <activity android:name=".CoachMemberlistActivity" />
         <activity android:name=".CoachReportsActivity" />
         <activity android:name=".CoachMessagesActivity" />
         <activity android:name=".CoachTrainingActivity" />
-        <activity android:name=".CoachDashboardActivity"
+        <activity
+            android:name=".CoachDashboardActivity"
             android:launchMode="singleTop"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden|adjustResize"
-            tools:ignore="LockedOrientationActivity"/>
+            tools:ignore="LockedOrientationActivity" />
         <activity android:name=".SettingsActivity" />
         <activity android:name=".CalendarActivity" />
         <activity android:name=".TasksActivity" />
@@ -33,6 +37,7 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
