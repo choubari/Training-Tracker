@@ -18,7 +18,8 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp">
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="50dp">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,4 +68,50 @@
                 android:textSize="18sp" />
         </RelativeLayout>
     </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="10dp">
+        <ProgressBar
+            android:id="@+id/progressBar2"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_centerHorizontal="true"/>
+        <TextView
+            android:layout_marginTop="50dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/nexttraining"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textColor="@color/colorAccent"
+            android:layout_centerHorizontal="true" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/countdown"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:layout_below="@+id/nexttraining"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+        <Button
+            android:id="@+id/startMemberbutton"
+            style="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_margin="10dp"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:background="@drawable/button"
+            android:onClick="StartTraining"
+            android:text="Commencer l'entraînement"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
 </LinearLayout>

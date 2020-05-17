@@ -128,11 +128,13 @@ public class MainActivity extends AppCompatActivity {
                                 docfound = true;
                                 Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
                                 intent.putExtra(LOGIN_EMAIL, email);
+                                finish();
                                 startActivity(intent);
                             }
                             if (!docfound) {
                                 Intent intent = new Intent(MainActivity.this, CoachDashboardActivity.class);
                                 intent.putExtra(LOGIN_EMAIL, email);
+                                finish();
                                 startActivity(intent);
                             }
                         } else {

@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,7 +20,12 @@ import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.module.AppGlideModule;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -29,22 +35,26 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StreamDownloadTask;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Request;
+import com.squareup.picasso.RequestHandler;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.EnumMap;
+import java.util.concurrent.ExecutionException;
+
+import static com.squareup.picasso.Picasso.LoadedFrom.NETWORK;
 
 public class DashboardActivity extends AppCompatActivity {
    static final String USER_DATA = "com.choubapp.running.USER_DATA";
    static final String USER_TEAM = "com.choubapp.running.USER_TEAM";
-    //private final String IMAGE_URL = "PictureUploads/1585506259357.jpg";
-   // StorageReference picref =FirebaseStorage.getInstance().getReference("PictureUploads");
-    //StorageReference pathReference = picref.child("1585506259357.jpg");
     ImageView profilpic;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
     String Email,Team;
     String doc_id ;
-    //Map<String, Object> UserMap;
-    //Membre User;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +63,10 @@ public class DashboardActivity extends AppCompatActivity {
         Email= intent.getStringExtra(SettingsActivity.LOGIN_EMAIL);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        loadprofilepic();
         findViewById(R.id.header).setVisibility(View.GONE);
         findViewById(R.id.big_screen).setVisibility(View.GONE);
         profilpic = findViewById(R.id.person);
-       // String url="https://firebasestorage.googleapis.com/v0/b/trackingtraining-ff626.appspot.com/o/PictureUploads%2F1585506259357.jpg";
-        //Glide.with(DashboardActivity.this).load(url).centerCrop().into(profilpic);
-        //GlideApp.with(this /* context */).load(pathReference).into(profilpic);
         final TextView DisplayName = (TextView) findViewById(R.id.name);
         final TextView DisplayUsername = (TextView) findViewById(R.id.username);
         db.setFirestoreSettings(settings);
@@ -73,12 +81,6 @@ public class DashboardActivity extends AppCompatActivity {
                               for (DocumentSnapshot document : task.getResult()) {
                              //     docfound = true;
                                   Log.d("TAG", document.getId() + " => " + document.getData());
-                                  //-- UserMap=document.getData();
-                               /* FullName=document.get("FullName").toString();
-                                Email=document.get("Email").toString();
-                                Username=document.get("Username").toString();
-                                Password=document.get("Password").toString();
-                                Date=document.get("Date de Naissance").toString();*/
                                   DisplayName.setText(document.get("FullName").toString());
                                   DisplayUsername.setText("@" + document.get("Username").toString());
                                   doc_id = document.getId();
@@ -93,16 +95,19 @@ public class DashboardActivity extends AppCompatActivity {
                     }
                 });
     }
-   /* @GlideModule
-    public class MyAppGlideModule extends AppGlideModule {
-
-        @Override
-        public void registerComponents(Context context, Glide glide, Registry registry) {
-            // Register FirebaseImageLoader to handle StorageReference
-            registry.append(StorageReference.class, InputStream.class,
-                    new FirebaseImageLoader.Factory());
-        }
-    }*/
+    private void loadprofilepic(){
+        ImageView imageView =findViewById(R.id.person);
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+        StorageReference storageReference = firebaseStorage.getReference();
+        // Get the image stored on Firebase via "User id/ImageProfile/Profile Pic.jpg".
+        storageReference.child(firebaseAuth.getUid()).child("ImageProfile").child("Profile Pic").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Picasso.get().load(uri).fit().centerInside().into(imageView);
+            }
+        });
+    }
 
     // Executed when Sign in button pressed
     public void Logout(View v)   {
@@ -124,6 +129,7 @@ public class DashboardActivity extends AppCompatActivity {
     public void Training(View v) {
         Intent intent = new Intent(this, TrainingActivity.class);
         intent.putExtra(USER_TEAM,Team);
+        intent.putExtra(USER_DATA, Email);
         startActivity(intent);
     }
 
@@ -139,6 +145,7 @@ public class DashboardActivity extends AppCompatActivity {
     // Executed when Tasks button pressed
     public void Tasks(View v) {
         Intent intent = new Intent(this, TasksActivity.class);
+        intent.putExtra(USER_DATA, Email);
         startActivity(intent);
     }
 

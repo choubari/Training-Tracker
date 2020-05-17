@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
@@ -53,32 +54,24 @@ import java.util.stream.Stream;
 public class SettingsActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     static final String LOGIN_EMAIL = "com.choubapp.running.LOGIN_EMAIL";
-    private StorageReference mStorageRef;
-    private DatabaseReference mDatabaseReference;
     private StorageTask mUploadTask;
     private ProgressBar mProgressBar;
     private Uri mImageUri;
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
+    private FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+    private StorageReference storageReference = firebaseStorage.getReference();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseAuth firebaseAuth=FirebaseAuth.getInstance();
+    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    private DatabaseReference mDatabaseReference =firebaseDatabase.getReference(firebaseAuth.getUid());;
+    private FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
     TextView DisplayName, DisplayUsername,DisplayTeamID,DisplayEmail,DisplayPassword,DisplayDate;
     private String FullName, Username, Email,Password,Date,TeamID;
-    private String Gender;
     String DocID;
-   /* Membre UserData;
-    Map<String, Object> newMap =new HashMap<>();
-    @RequiresApi(api = Build.VERSION_CODES.N)*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
         DocID= intent.getStringExtra(DashboardActivity.USER_DATA);
         System.out.println("Setting"+DocID);
-        /*newMap = Arrays.stream(sUserData.split(","))
-                .map(s -> s.split("="))
-                .collect(Collectors.toMap(s -> s[0], s -> s[1]));
-        System.out.println("Settin"+newMap);
-        for (Object key : newMap.values()) {
-            System.out.println(key);
-        }*/
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         DisplayName = (TextView) findViewById(R.id.edit_fullname);
@@ -168,8 +161,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
     public  void ImageUpload(View v){
-        mStorageRef = FirebaseStorage.getInstance().getReference("PictureUploads");
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference("PictureUploads");
         mProgressBar = findViewById(R.id.progressBar);
 
         openFileChooser();
@@ -187,21 +178,14 @@ public class SettingsActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK  && data!= null && data.getData() != null) {
             mImageUri = data.getData();
-            uploadbox.setText("image.jpg");
+            uploadbox.setText("profilepicture.jpg");
         }
     }
-    //get image extension
-    private String getFileExtension(Uri uri) {
-        ContentResolver cR = getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(cR.getType(uri));
-    }
-    private void uploadFile() {
-         if (mImageUri != null) {
-            StorageReference fileReference = mStorageRef.child(System.currentTimeMillis()
-                    + "." + getFileExtension(mImageUri));
 
-            mUploadTask = fileReference.putFile(mImageUri)
+    private void uploadFile(View v) {
+        if (mImageUri != null) {
+             StorageReference fileReference = storageReference.child(firebaseAuth.getUid()).child("ImageProfile").child("Profile Pic"); //User id/Images/Profile Pic.jpg
+             mUploadTask = fileReference.putFile(mImageUri)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -217,6 +201,7 @@ public class SettingsActivity extends AppCompatActivity {
                             Upload upload = new Upload(taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
                             String uploadId = mDatabaseReference.push().getKey();
                             mDatabaseReference.child(uploadId).setValue(upload);
+                            BacktoDashboard(v);
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -233,18 +218,13 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show();
+            BacktoDashboard(v);
         }
     }
-    public void  savepicture( View v){
-        if (mUploadTask != null && mUploadTask.isInProgress()) {
-            Toast.makeText(SettingsActivity.this, "Upload in progress", Toast.LENGTH_SHORT).show();
-        } else {
-            uploadFile();
-        }
-    }
+
     public  void saveData(View v){
-        attemptSaving(v);
+        uploadFile(v);
+        attemptSaving();
     }
 
     public void setDate(String date) {
@@ -254,7 +234,7 @@ public class SettingsActivity extends AppCompatActivity {
         // You can add more checking logic here.
         return email.contains("@");
     }
-    private void attemptSaving(View v) {
+    private void attemptSaving() {
         // Reset errors displayed in the form.
         DisplayEmail.setError(null);
         DisplayPassword.setError(null);
@@ -319,8 +299,6 @@ public class SettingsActivity extends AppCompatActivity {
                     "Birth", Date
             );
             Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).show();
-            BacktoDashboard(v);
-
         }
     }
 

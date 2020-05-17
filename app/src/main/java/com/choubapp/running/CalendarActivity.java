@@ -53,8 +53,8 @@ public class CalendarActivity extends AppCompatActivity {
             @Override
             public void onDayClick(EventDay eventDay) {
                 Calendar clickedDayCalendar = eventDay.getCalendar();
-                String day= String.valueOf(clickedDayCalendar.get(Calendar.DAY_OF_MONTH));
-                String month=String.valueOf(clickedDayCalendar.get(Calendar.MONTH)+1);
+                String day= String.format("%02d", clickedDayCalendar.get(Calendar.DAY_OF_MONTH));
+                String month=String.format("%02d",clickedDayCalendar.get(Calendar.MONTH)+1);
                 String year=String.valueOf(clickedDayCalendar.get(Calendar.YEAR));
                 String selectedDate =day+"-"+month+"-"+year;
                 if (TrainingDates.contains(selectedDate)){

@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
@@ -46,11 +47,15 @@ public class CoachSettingsActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     static final String LOGIN_EMAIL = "com.choubapp.running.LOGIN_EMAIL";
     private StorageReference mStorageRef;
-    private DatabaseReference mDatabaseReference;
     private StorageTask mUploadTask;
     private ProgressBar mProgressBar;
     private Uri mImageUri;
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+    private StorageReference storageReference = firebaseStorage.getReference();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseAuth firebaseAuth=FirebaseAuth.getInstance();
+    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    private DatabaseReference mDatabaseReference =firebaseDatabase.getReference(firebaseAuth.getUid());;
     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
     TextView DisplayName, DisplayUsername,DisplayEmail,DisplayPassword,DisplayDate;
     private String FullName, Username, Email,Password,Date;
@@ -173,11 +178,9 @@ public class CoachSettingsActivity extends AppCompatActivity {
         MimeTypeMap mime = MimeTypeMap.getSingleton();
         return mime.getExtensionFromMimeType(cR.getType(uri));
     }
-    private void uploadFile() {
+    private void uploadFile(View v) {
         if (mImageUri != null) {
-            StorageReference fileReference = mStorageRef.child(System.currentTimeMillis()
-                    + "." + getFileExtension(mImageUri));
-
+            StorageReference fileReference = storageReference.child(firebaseAuth.getUid()).child("ImageProfile").child("Profile Pic"); //User id/Images/Profile Pic.jpg
             mUploadTask = fileReference.putFile(mImageUri)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
@@ -194,6 +197,7 @@ public class CoachSettingsActivity extends AppCompatActivity {
                             CoachSettingsActivity.Upload upload = new CoachSettingsActivity.Upload(taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
                             String uploadId = mDatabaseReference.push().getKey();
                             mDatabaseReference.child(uploadId).setValue(upload);
+                            BacktoDashboard(v);
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -210,17 +214,12 @@ public class CoachSettingsActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show();
+            BacktoDashboard(v);
         }
     }
-    public void  savepicture( View v){
-        if (mUploadTask != null && mUploadTask.isInProgress()) {
-            Toast.makeText(CoachSettingsActivity.this, "Upload in progress", Toast.LENGTH_SHORT).show();
-        } else {
-            uploadFile();
-        }
-    }
+
     public  void saveData(View v){
+        uploadFile(v);
         attemptSaving(v);
     }
 
@@ -294,7 +293,6 @@ public class CoachSettingsActivity extends AppCompatActivity {
                     "Birth", Date
             );
             Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).show();
-            BacktoDashboard(v);
 
         }
     }

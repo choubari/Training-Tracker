@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Registry;
@@ -19,7 +20,9 @@ import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.module.AppGlideModule;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -29,6 +32,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -43,9 +47,6 @@ import java.util.Objects;
 
 public class CoachDashboardActivity extends AppCompatActivity {
     static final String USER_DATA = "com.choubapp.running.USER_DATA";
-    //private final String IMAGE_URL = "PictureUploads/1585506259357.jpg";
-    // StorageReference picref =FirebaseStorage.getInstance().getReference("PictureUploads");
-    //StorageReference pathReference = picref.child("1585506259357.jpg");
     ImageView profilpic;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
@@ -59,12 +60,9 @@ public class CoachDashboardActivity extends AppCompatActivity {
         Email = intent.getStringExtra(CoachSettingsActivity.LOGIN_EMAIL);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coach_dashboard);
+        loadprofilepic();
         findViewById(R.id.header).setVisibility(View.GONE);
         findViewById(R.id.big_screen).setVisibility(View.GONE);
-        profilpic = findViewById(R.id.person);
-        // String url="https://firebasestorage.googleapis.com/v0/b/trackingtraining-ff626.appspot.com/o/PictureUploads%2F1585506259357.jpg";
-        //Glide.with(DashboardActivity.this).load(url).centerCrop().into(profilpic);
-        //GlideApp.with(this /* context */).load(pathReference).into(profilpic);
         final TextView DisplayName = (TextView) findViewById(R.id.name);
         final TextView DisplayUsername = (TextView) findViewById(R.id.username);
         System.out.println("Email : "+Email);
@@ -92,6 +90,20 @@ public class CoachDashboardActivity extends AppCompatActivity {
 
                 });
     }
+    private void loadprofilepic(){
+        ImageView imageView =findViewById(R.id.person);
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+        StorageReference storageReference = firebaseStorage.getReference();
+        // Get the image stored on Firebase via "User id/ImageProfile/Profile Pic.jpg".
+        storageReference.child(firebaseAuth.getUid()).child("ImageProfile").child("Profile Pic").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Picasso.get().load(uri).fit().centerInside().into(imageView);
+            }
+        });
+    }
+
 
     // Executed when Sign in button pressed
     public void Logout(View v) {
