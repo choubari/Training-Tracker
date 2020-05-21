@@ -51,6 +51,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:19.3.0'
     implementation 'com.google.firebase:firebase-database:19.2.1'
     implementation "androidx.multidex:multidex:2.0.0"
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
 
 }
 apply plugin: 'com.android.application'

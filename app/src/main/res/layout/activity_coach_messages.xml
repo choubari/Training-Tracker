@@ -4,6 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
     android:background="@drawable/dashbg"
     tools:context=".CoachMessagesActivity">
@@ -14,11 +18,12 @@
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:src="@drawable/backicon"
-        android:onClick="BacktoDashboard"/>
+        android:onClick="BacktoDashboard"
+        android:contentDescription="TODO" />
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp">
+        android:layout_marginStart="10dp">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,4 +72,36 @@
                 android:textSize="18sp" />
         </RelativeLayout>
     </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="40dp"
+        android:orientation="vertical">
+        <Spinner
+            android:id="@+id/spinnerMessagesCoach"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:prompt="@string/equipes"
+            android:layout_marginStart="10dp"
+            android:backgroundTint="@color/colorAccent"/>
+
+        <ListView
+            android:id="@+id/chat_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="300dp" />
+
+        <EditText
+            android:id="@+id/messageInput"
+            android:layout_width="152dp"
+            android:layout_height="42dp"
+            android:text="Message" />
+
+        <ImageButton
+            android:id="@+id/sendButton"
+            android:layout_width="33dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_right" />
+    </LinearLayout>
 </LinearLayout>
