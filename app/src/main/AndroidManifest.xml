@@ -10,7 +10,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CreateTraining"></activity>
+        <activity android:name=".UpdateTraining"></activity>
+        <activity android:name=".CreateTraining" />
         <activity android:name=".CreateTeam" />
         <activity android:name=".CoachSettingsActivity" />
         <activity android:name=".CoachMemberlistActivity" />

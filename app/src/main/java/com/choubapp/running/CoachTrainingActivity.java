@@ -8,12 +8,16 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -31,11 +35,18 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.choubapp.running.CoachDashboardActivity.USER_DATA;
 
@@ -43,13 +54,12 @@ public class CoachTrainingActivity extends AppCompatActivity {
     String email;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     CollectionReference Trainings = db.collection("Entrainement");
-    CollectionReference Teams = db.collection("Equipe");
-    ScrollView Data;
-    Boolean b ;
-    String currentTraining,LoadedTeam;
-    Spinner sp;
-    TextView Name, Desc, Date, LieuDep, LieuArr, TimeDep,TimeArr;
-    String docID;
+    TextView countdown;
+    Date minDate;  Timestamp started;
+    Boolean alreadyStarted = false, alreadyFinished=false;
+    TextView next;
+    Button startButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,181 +67,154 @@ public class CoachTrainingActivity extends AppCompatActivity {
         email= intent.getStringExtra(USER_DATA);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coach_training);
-        Data=findViewById(R.id.trainingINFO);
-        Data.setVisibility(View.INVISIBLE);
-        Spinner spinner = (Spinner) findViewById(R.id.spinnertrainings);
-        LoadSpinnerData(spinner,"TrainingName",Trainings);
+        startButton =findViewById(R.id.startCoachbutton);
+        startButton.setVisibility(View.INVISIBLE);
+        replaceProgressbar();
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.s");
+                                startTimer(minDate);
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        thread.start();
     }
-    public void LoadSpinnerData(Spinner spinner, String field, CollectionReference trainings){
-        List<String> TrainingsList = new ArrayList<>();
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, TrainingsList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        trainings.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+
+    private void replaceProgressbar(){
+        ArrayList<Timestamp> Dates = new ArrayList<>();
+        List<String> IDs = new ArrayList<>();
+
+        Trainings.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
+                    ProgressBar progressBar;
                     for (QueryDocumentSnapshot document : task.getResult()) {
-                        String trainingName = document.getString(field);
+                        String trainingName = document.getString("TrainingName");
                         String coachmail = document.getString("Email Coach");
                         if (trainingName!=null && coachmail.equals(email) ){
-                            TrainingsList.add(trainingName);
+                            String mdate = document.get("Date").toString();
+                            String mTimeDep = document.get("HeureDep").toString();
+                            String mTimeArr = document.get("HeureArr").toString();
+                            //String[] Str = mdate.split("-", 2);
+                            //String[] Tme = mdate.split(":", 1);
+                            try {
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm");
+                                Date parsedDateDep = dateFormat.parse(mdate +" "+mTimeDep);
+                                Timestamp timestampDep = new Timestamp(parsedDateDep.getTime());
+                                Date parsedDateArr = dateFormat.parse(mdate +" "+mTimeArr);
+                                Timestamp timestampArr = new Timestamp(parsedDateArr.getTime());
+                                Date datee= new Date();
+                                Timestamp mytime = new Timestamp(datee.getTime());
+                                if(mytime.before(timestampDep)){
+                                    Dates.add(timestampDep);
+                                    IDs.add(document.getId());
+                                }
+                                if(mytime.before(timestampArr) && mytime.after(timestampDep)){
+                                    alreadyStarted =true;
+                                    started = timestampDep;
+                                }
+                                if(mytime.after(timestampArr)){
+                                    alreadyFinished =true;
+                                }
+                            } catch(Exception e) {
+                                System.out.println("Exception :" + e);
+                            }
                         }
-                        if (field.equals("Nom Equipe")) sp.setSelection(((ArrayAdapter<String>)sp.getAdapter()).getPosition(LoadedTeam));
-
                     }
-                    adapter.notifyDataSetChanged();
+                    //look for the closet date
+                    System.out.println(Dates);
+                    progressBar=findViewById(R.id.progressBar2);
+                    next=findViewById(R.id.nexttraining);
+                    progressBar.setVisibility(View.GONE);
+                    if (Dates.isEmpty() && alreadyFinished)
+                        next.setText("Vous n'avez aucun prochain entraînement");
+                    else { if(alreadyStarted) {
+                        next.setText("Votre entraînement est déjà commencé depuis : \n");
+                        minDate = started;
+                        //started
+                    } else{
+                            minDate = Collections.min(Dates);
+                            System.out.println(minDate);
+                            String[] SplitedDate = minDate.toString().split(" ", 2);
+                            next.setText("Votre prochain entraînement sera le : \n" + SplitedDate[0] + " à " + SplitedDate[1] + "\n" + "il vous reste :");
+                            //startTimer(minDate);
+                        }
+                    }
+
                 }
             }
         });
+    }
+    private void startTimer(Date end) {
+        SimpleDateFormat simpleDateFormat =
+                new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.s");
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currentTraining= parent.getSelectedItem().toString();
-                RetreiveTrainingData(currentTraining);
-
+        try {
+            next=findViewById(R.id.nexttraining);
+            Date date1 = new Date();
+            Date date2 = simpleDateFormat.parse(String.valueOf(end));
+            if (alreadyStarted) {
+                printDifference(date2, date1);
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+            else printDifference(date1, date2);
 
-            }
-        });
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+    public void printDifference(Date startDate, Date endDate){
 
-    }
-    public void RetreiveTrainingData(String tr){
-        b=false;
-        Data.setVisibility(View.VISIBLE);
-        Name=findViewById(R.id.trainingname);
-        Desc=findViewById(R.id.trainingdesc);
-        Date=findViewById(R.id.trainingdate);
-        LieuDep=findViewById(R.id.depart);
-        LieuArr=findViewById(R.id.arrive);
-        TimeDep=findViewById(R.id.heuredep);
-        TimeArr=findViewById(R.id.heurearr);
-        Trainings.whereEqualTo("TrainingName", tr)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                Log.d("TAG", document.getId() + " => " + document.getData());
-                                docID= document.getId();
-                                Name.setText(document.get("TrainingName").toString());
-                                Desc.setText(document.get("Description").toString());
-                                Date.setText(document.get("Date").toString());
-                                LieuDep.setText(document.get("LieuDep").toString());
-                                LieuArr.setText(document.get("LieuArr").toString());
-                                TimeDep.setText(document.get("HeureDep").toString());
-                                TimeArr.setText(document.get("HeureArr").toString());
-                                LoadedTeam=document.get("Team").toString();
-                                System.out.println(b);
-                                sp=findViewById(R.id.pickteam);
-                                if (!b){
-                                    selectTeam(sp);
-                                    b=true;
-                                }
-                            }
-                        } else {
-                            Log.d("TAG", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-    }
-    public void selectTeam(View v){
-        sp=findViewById(R.id.pickteam);
-        LoadSpinnerData(sp, "Nom Equipe",Teams);
-    }
-    public void SaveEdited(View v) {
-        db.collection("Entrainement").document(docID).update(
-                "TrainingName",Name.getText().toString(),
-                "Description",Desc.getText().toString(),
-                "Date",Date.getText().toString(),
-                "LieuDep",LieuDep.getText().toString(),
-                "LieuArr",LieuArr.getText().toString(),
-                "HeureDep",TimeDep.getText().toString(),
-                "Team",sp.getSelectedItem().toString(),
-                "HeureArr",TimeArr.getText().toString()
-        );
-        Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).show();
-        BacktoDashboard(v);
+        long different = endDate.getTime() - startDate.getTime();
+        if (different<= 1800000 || alreadyStarted) {
+            startButton =findViewById(R.id.startMemberbutton);
+            startButton.setVisibility(View.VISIBLE);
+        }
+        //System.out.println("startDate : " + startDate);
+        //System.out.println("endDate : "+ endDate);
+        //System.out.println("different : " + different);
 
-    }
-    public void deleteTraining(View v) {
-        new AlertDialog.Builder(this)
-                .setTitle("Supprimer l'Entraînement")
-                .setMessage("Voulez-vous supprimer cet entraînement? (action irreversible)")
-                .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        db.collection("Entrainement").document(docID)
-                                .delete()
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d("TAG", "DocumentSnapshot successfully deleted!");
-                                        BacktoDashboard(v);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w("TAG", "Error deleting document", e);
-                                    }
-                                });
-                    }
-                })
-                .setNegativeButton("Non", null)
-                .show();
-    }
-    public void DatePicker(View v) throws ParseException {
-        final DatePickerDialog[] picker = new DatePickerDialog[1];
-        Date= findViewById(R.id.trainingdate);
-        //eText.setInputType(InputType.TYPE_NULL);
-        final Calendar cldr = Calendar.getInstance();
-        int day = cldr.get(Calendar.DAY_OF_MONTH);
-        int month = cldr.get(Calendar.MONTH);
-        int year = cldr.get(Calendar.YEAR);
-        picker[0] = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                Date.setText(dayOfMonth + "-" + (monthOfYear + 1) + "-" + year);
-            }
-        }, year, month, day);
-        picker[0].getDatePicker().setMinDate(new Date().getTime());
-        picker[0].show();
+        long secondsInMilli = 1000;
+        long minutesInMilli = secondsInMilli * 60;
+        long hoursInMilli = minutesInMilli * 60;
+        long daysInMilli = hoursInMilli * 24;
+
+        long elapsedDays = different / daysInMilli;
+        different = different % daysInMilli;
+
+        long elapsedHours = different / hoursInMilli;
+        different = different % hoursInMilli;
+
+        long elapsedMinutes = different / minutesInMilli;
+        different = different % minutesInMilli;
+
+        long elapsedSeconds = different / secondsInMilli;
+        countdown=findViewById(R.id.countdown);
+        if (elapsedDays!=0) {
+            countdown.setText(elapsedDays + " jours, " + elapsedHours + " heures, " + elapsedMinutes + " minutes, " + elapsedSeconds + " seconds");
+        }else
+            countdown.setText(elapsedHours+" heures, "+elapsedMinutes+" minutes, "+elapsedSeconds+" seconds");
     }
 
-    public void TimePickerDep(View v){
-        TimeDep= findViewById(R.id.heuredep);
-        Calendar mcurrentTime = Calendar.getInstance();
-        int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
-        int minute = mcurrentTime.get(Calendar.MINUTE);
-        TimePickerDialog mTimePicker;
-        mTimePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                TimeDep.setText(String.format("%02d", selectedHour )+ ":" + String.format("%02d", selectedMinute));
-            }
-        }, hour, minute, true);//Yes 24 hour time
-        mTimePicker.setTitle("Select Time");
-        mTimePicker.show();
+
+    public void StartTraining(View v){
+
     }
-    public void TimePickerArr(View v){
-        TimeArr= findViewById(R.id.heurearr);
-        Calendar mcurrentTime = Calendar.getInstance();
-        int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
-        int minute = mcurrentTime.get(Calendar.MINUTE);
-        TimePickerDialog mTimePicker;
-        mTimePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                TimeArr.setText( String.format("%02d", selectedHour )+ ":" + String.format("%02d", selectedMinute));
-            }
-        }, hour, minute, true);//Yes 24 hour time
-        mTimePicker.setTitle("Select Time");
-        mTimePicker.show();
-    }
+
+
+
     public void BacktoDashboard(View v) {
         Intent intent = new Intent(this, CoachDashboardActivity.class);
         finish();
@@ -239,6 +222,12 @@ public class CoachTrainingActivity extends AppCompatActivity {
     }
     public void CreateTraining(View v){
         Intent intent = new Intent(this, CreateTraining.class);
+        intent.putExtra(USER_DATA, email);
+        finish();
+        startActivity(intent);
+    }
+    public void UpdateTraining(View v){
+        Intent intent = new Intent(this, UpdateTraining.class);
         intent.putExtra(USER_DATA, email);
         finish();
         startActivity(intent);

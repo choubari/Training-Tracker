@@ -72,17 +72,8 @@ tools:context=".CoachTrainingActivity">
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp">
 
-        <Spinner
-            android:id="@+id/spinnertrainings"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:prompt="@string/equipes"
-            android:layout_marginStart="10dp"
-            android:backgroundTint="@color/colorAccent"/>
-
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginStart="5dp"
@@ -90,180 +81,72 @@ tools:context=".CoachTrainingActivity">
             android:layout_marginEnd="5dp"
             android:layout_marginBottom="5dp"
             android:onClick="CreateTraining"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:padding="5dp"
             android:text="Nouveau Entraînement"
             android:textColor="@color/colorAccent"
             android:textStyle="bold" />
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:onClick="UpdateTraining"
+            android:textSize="15sp"
+            android:padding="5dp"
+            android:text="Modifier Un Entraînement"
+            android:textColor="@color/colorPrimaryDark"
+            android:textStyle="bold" />
 
     </RelativeLayout>
-    <ScrollView
-        android:layout_width="match_parent"
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_margin="10dp">
+    <ProgressBar
+        android:id="@+id/progressBar2"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_centerHorizontal="true"/>
+    <TextView
+        android:layout_marginTop="50dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
-        android:id="@+id/trainingINFO">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Nom de l'entrainement"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/trainingname"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="false"
-                    android:imeOptions="actionNext"
-                    android:inputType="text"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Description"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/trainingdesc"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="false"
-                    android:imeOptions="actionNext"
-                    android:inputType="text"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
+        android:id="@+id/nexttraining"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:textColor="@color/colorAccent"
+        android:layout_centerHorizontal="true" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/countdown"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:layout_below="@+id/nexttraining"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:hint="Date"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/trainingdate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:focusableInTouchMode="false"
-                    android:onClick="DatePicker"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:hint="Heure de départ"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/heuredep"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:focusableInTouchMode="false"
-                    android:onClick="TimePickerDep" />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:hint="Heure d'arrivée"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/heurearr"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:focusableInTouchMode="false"
-                    android:onClick="TimePickerArr" />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Lieu de départ"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/depart"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="false"
-                    android:imeOptions="actionNext"
-                    android:inputType="text"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Lieu d'arrivée"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                app:boxStrokeColor="@color/colorPrimary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/arrive"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="false"
-                    android:imeOptions="actionNext"
-                    android:inputType="text"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Equipe: "
-                    android:textSize="18sp"/>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/pickteam"/>
-            </LinearLayout>
-            <Button
-                android:id="@+id/saveEdited"
-                style="?android:textAppearanceMedium"
-                android:background="@drawable/button"
-                android:textColor="@color/white"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginBottom="5dp"
-                android:onClick="SaveEdited"
-                android:text="Enregistrer"
-                android:textStyle="bold"/>
-            <Button
-                android:id="@+id/deletetraining"
-                style="?android:textAppearanceMedium"
-                android:textColor="@color/colorPrimaryDark"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginBottom="5dp"
-                android:onClick="deleteTraining"
-                android:text="Supprimer l'Entraînement"
-                android:textStyle="bold"/>
-        </LinearLayout>
-    </ScrollView>
+    <Button
+        android:id="@+id/startCoachbutton"
+        style="?android:textAppearanceMedium"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_margin="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center"
+        android:textSize="20sp"
+        android:background="@drawable/button"
+        android:onClick="StartTraining"
+        android:text="Commencer l'entraînement"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+</RelativeLayout>
+
 </LinearLayout>

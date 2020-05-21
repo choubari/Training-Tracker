@@ -99,7 +99,7 @@ public class CreateTraining extends AppCompatActivity {
         picker[0] = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                eDate.setText(dayOfMonth + "-" + (monthOfYear + 1) + "-" + year);
+                eDate.setText(String.format("%02d", dayOfMonth) + "-" + String.format("%02d", (monthOfYear + 1)) + "-" + year);
             }
         }, year, month, day);
         picker[0].getDatePicker().setMinDate(new Date().getTime());
