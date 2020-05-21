@@ -84,7 +84,6 @@ public class CoachMemberlistActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String team = parent.getSelectedItem().toString();
                 SetRecyclerbyID(team);
-
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -117,7 +116,6 @@ public class CoachMemberlistActivity extends AppCompatActivity {
     private void setUpRecyclerView(String team) {
         CollectionReference Members = db.collection("member");
         Query query = Members.whereEqualTo("Team",team);
-
         FirestoreRecyclerOptions<Membre> options = new FirestoreRecyclerOptions.Builder<Membre>()
                 .setQuery(query, Membre.class)
                 .build();

@@ -34,6 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.squareup.picasso.Picasso;
@@ -55,6 +56,7 @@ public class DashboardActivity extends AppCompatActivity {
     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().setTimestampsInSnapshotsEnabled(true).build();
     String Email,Team;
     String doc_id ;
+    TextView DisplayName ,DisplayUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +69,8 @@ public class DashboardActivity extends AppCompatActivity {
         findViewById(R.id.header).setVisibility(View.GONE);
         findViewById(R.id.big_screen).setVisibility(View.GONE);
         profilpic = findViewById(R.id.person);
-        final TextView DisplayName = (TextView) findViewById(R.id.name);
-        final TextView DisplayUsername = (TextView) findViewById(R.id.username);
+        DisplayName = (TextView) findViewById(R.id.name);
+        DisplayUsername = (TextView) findViewById(R.id.username);
         db.setFirestoreSettings(settings);
         CollectionReference peopleRef = db.collection("member");
         peopleRef.whereEqualTo("Email", Email)
@@ -106,6 +108,13 @@ public class DashboardActivity extends AppCompatActivity {
             public void onSuccess(Uri uri) {
                 Picasso.get().load(uri).fit().centerInside().into(imageView);
             }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                if (exception instanceof StorageException && ((StorageException) exception).getErrorCode() == StorageException.ERROR_OBJECT_NOT_FOUND) {
+                    Log.d("TAG", "File not exist");
+                }
+            }
         });
     }
 
@@ -127,9 +136,13 @@ public class DashboardActivity extends AppCompatActivity {
 
     // Executed when Training button pressed
     public void Training(View v) {
+        DisplayName = (TextView) findViewById(R.id.name);
+        DisplayUsername = (TextView) findViewById(R.id.username);
         Intent intent = new Intent(this, TrainingActivity.class);
         intent.putExtra(USER_TEAM,Team);
         intent.putExtra(USER_DATA, Email);
+        intent.putExtra("userFullName", DisplayName.getText());
+        intent.putExtra("username", DisplayUsername.getText());
         startActivity(intent);
     }
 

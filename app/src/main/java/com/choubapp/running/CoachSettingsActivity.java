@@ -18,6 +18,8 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +51,8 @@ public class CoachSettingsActivity extends AppCompatActivity {
     private StorageReference mStorageRef;
     private StorageTask mUploadTask;
     private ProgressBar mProgressBar;
+    ScrollView inputs;
+    RelativeLayout loading;
     private Uri mImageUri;
     private FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
     private StorageReference storageReference = firebaseStorage.getReference();
@@ -67,6 +71,11 @@ public class CoachSettingsActivity extends AppCompatActivity {
         System.out.println("Coach Setting"+DocID);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coach_settings);
+
+        loading=findViewById(R.id.loading);
+        inputs=findViewById(R.id.settingsView);
+        inputs.setVisibility(View.INVISIBLE);
+
         DisplayName = (TextView) findViewById(R.id.edit_fullname);
         DisplayUsername = (TextView) findViewById(R.id.edit_username);
         DisplayEmail = (TextView) findViewById(R.id.edit_email);
@@ -86,6 +95,10 @@ public class CoachSettingsActivity extends AppCompatActivity {
                         DisplayPassword.setText(document.get("Password").toString());
                         DisplayDate.setText(document.get("Birth").toString());
                         Log.d("TAG", "DocumentSnapshot data: " + document.getData());
+                        loading=findViewById(R.id.loading);
+                        inputs=findViewById(R.id.settingsView);
+                        loading.setVisibility(View.GONE);
+                        inputs.setVisibility(View.VISIBLE);
                     }
                 }
             }

@@ -18,6 +18,8 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,7 +57,9 @@ public class SettingsActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     static final String LOGIN_EMAIL = "com.choubapp.running.LOGIN_EMAIL";
     private StorageTask mUploadTask;
-    private ProgressBar mProgressBar;
+    ScrollView inputs;
+    RelativeLayout loading;
+    private ProgressBar mProgressBar ;
     private Uri mImageUri;
     private FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
     private StorageReference storageReference = firebaseStorage.getReference();
@@ -74,6 +78,11 @@ public class SettingsActivity extends AppCompatActivity {
         System.out.println("Setting"+DocID);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        loading=findViewById(R.id.loading);
+        inputs=findViewById(R.id.settingsView);
+        inputs.setVisibility(View.INVISIBLE);
+
         DisplayName = (TextView) findViewById(R.id.edit_fullname);
         DisplayUsername = (TextView) findViewById(R.id.edit_username);
         DisplayTeamID = (TextView) findViewById(R.id.edit_team_id);
@@ -88,7 +97,6 @@ public class SettingsActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-                        String p= document.getData().toString();
                         DisplayName.setText(document.get("FullName").toString());
                         DisplayUsername.setText(document.get("Username").toString());
                         DisplayTeamID.setText(document.get("Team").toString());
@@ -96,6 +104,11 @@ public class SettingsActivity extends AppCompatActivity {
                         DisplayPassword.setText(document.get("Password").toString());
                         DisplayDate.setText(document.get("Birth").toString());
                         Log.d("TAG", "DocumentSnapshot data: " + document.getData());
+
+                        loading=findViewById(R.id.loading);
+                        inputs=findViewById(R.id.settingsView);
+                        loading.setVisibility(View.GONE);
+                        inputs.setVisibility(View.VISIBLE);
                     }
                 }
             }

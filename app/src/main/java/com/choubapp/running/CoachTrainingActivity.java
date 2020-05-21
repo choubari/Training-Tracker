@@ -49,6 +49,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.choubapp.running.CoachDashboardActivity.USER_DATA;
+import static com.choubapp.running.DashboardActivity.USER_TEAM;
 
 public class CoachTrainingActivity extends AppCompatActivity {
     String email;
@@ -59,8 +60,9 @@ public class CoachTrainingActivity extends AppCompatActivity {
     Boolean alreadyStarted = false, alreadyFinished=false;
     TextView next;
     Button startButton;
-
-
+    String NextTrainingID;
+    Thread thread;
+    boolean running=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
@@ -70,16 +72,15 @@ public class CoachTrainingActivity extends AppCompatActivity {
         startButton =findViewById(R.id.startCoachbutton);
         startButton.setVisibility(View.INVISIBLE);
         replaceProgressbar();
-        Thread thread = new Thread() {
+        thread = new Thread() {
             @Override
             public void run() {
                 try {
-                    while (!isInterrupted()) {
+                    while (!isInterrupted() && running) {
                         Thread.sleep(1000);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.s");
                                 startTimer(minDate);
                             }
                         });
@@ -96,25 +97,24 @@ public class CoachTrainingActivity extends AppCompatActivity {
         ArrayList<Timestamp> Dates = new ArrayList<>();
         List<String> IDs = new ArrayList<>();
 
-        Trainings.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        Trainings.whereEqualTo("Email Coach", email).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     ProgressBar progressBar;
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         String trainingName = document.getString("TrainingName");
-                        String coachmail = document.getString("Email Coach");
-                        if (trainingName!=null && coachmail.equals(email) ){
+                        if (trainingName!=null ){
                             String mdate = document.get("Date").toString();
                             String mTimeDep = document.get("HeureDep").toString();
                             String mTimeArr = document.get("HeureArr").toString();
-                            //String[] Str = mdate.split("-", 2);
-                            //String[] Tme = mdate.split(":", 1);
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+                            Date parsedDateDep=null;
+                            Date parsedDateArr=null;
                             try {
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm");
-                                Date parsedDateDep = dateFormat.parse(mdate +" "+mTimeDep);
+                                parsedDateDep = dateFormat.parse(mdate +" "+mTimeDep);
                                 Timestamp timestampDep = new Timestamp(parsedDateDep.getTime());
-                                Date parsedDateArr = dateFormat.parse(mdate +" "+mTimeArr);
+                                parsedDateArr = dateFormat.parse(mdate +" "+mTimeArr);
                                 Timestamp timestampArr = new Timestamp(parsedDateArr.getTime());
                                 Date datee= new Date();
                                 Timestamp mytime = new Timestamp(datee.getTime());
@@ -124,6 +124,7 @@ public class CoachTrainingActivity extends AppCompatActivity {
                                 }
                                 if(mytime.before(timestampArr) && mytime.after(timestampDep)){
                                     alreadyStarted =true;
+                                    NextTrainingID = document.getId();
                                     started = timestampDep;
                                 }
                                 if(mytime.after(timestampArr)){
@@ -135,10 +136,10 @@ public class CoachTrainingActivity extends AppCompatActivity {
                         }
                     }
                     //look for the closet date
-                    System.out.println(Dates);
+                    //System.out.println(Dates);
                     progressBar=findViewById(R.id.progressBar2);
-                    next=findViewById(R.id.nexttraining);
                     progressBar.setVisibility(View.GONE);
+                    next=findViewById(R.id.nexttraining);
                     if (Dates.isEmpty() && alreadyFinished)
                         next.setText("Vous n'avez aucun prochain entraînement");
                     else { if(alreadyStarted) {
@@ -147,7 +148,9 @@ public class CoachTrainingActivity extends AppCompatActivity {
                         //started
                     } else{
                             minDate = Collections.min(Dates);
-                            System.out.println(minDate);
+                            int index = Dates.indexOf(minDate);
+                            NextTrainingID = IDs.get(index);
+                            //System.out.println(minDate + " " + NextTrainingID);
                             String[] SplitedDate = minDate.toString().split(" ", 2);
                             next.setText("Votre prochain entraînement sera le : \n" + SplitedDate[0] + " à " + SplitedDate[1] + "\n" + "il vous reste :");
                             //startTimer(minDate);
@@ -179,7 +182,7 @@ public class CoachTrainingActivity extends AppCompatActivity {
 
         long different = endDate.getTime() - startDate.getTime();
         if (different<= 1800000 || alreadyStarted) {
-            startButton =findViewById(R.id.startMemberbutton);
+            startButton =findViewById(R.id.startCoachbutton);
             startButton.setVisibility(View.VISIBLE);
         }
         //System.out.println("startDate : " + startDate);
@@ -210,13 +213,24 @@ public class CoachTrainingActivity extends AppCompatActivity {
 
 
     public void StartTraining(View v){
-
+        thread.interrupt();
+        running=false;
+        Intent intent = new Intent(this, CoachTrainingTime.class);
+        intent.putExtra(USER_DATA,email);
+        intent.putExtra("TrainingID",NextTrainingID);
+        startActivity(intent);
+        finish();
     }
 
 
-
+    @Override
+    public void onBackPressed() {
+        running=false;
+        super.onBackPressed();
+    }
     public void BacktoDashboard(View v) {
         Intent intent = new Intent(this, CoachDashboardActivity.class);
+        running=false;
         finish();
         startActivity(intent);
     }

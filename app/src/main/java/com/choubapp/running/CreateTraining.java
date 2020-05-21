@@ -44,10 +44,12 @@ import static com.choubapp.running.CoachDashboardActivity.USER_DATA;
 public class CreateTraining extends AppCompatActivity {
     private TextView LieuDep,LieuArr,TrainingName, Description;
     private TextInputEditText eDate,eTimeDep, eTimeArr;
-    String team;
+    String team,teamID;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     CollectionReference Teams = db.collection("Equipe");
     String email;
+    List<String> TeamsList = new ArrayList<>();
+    List<String> TeamIDsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +61,6 @@ public class CreateTraining extends AppCompatActivity {
     }
     public void LoadSpinnerTeams(){
         Spinner spinner = (Spinner) findViewById(R.id.pickteam);
-        List<String> TeamsList = new ArrayList<>();
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, TeamsList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
@@ -69,8 +70,10 @@ public class CreateTraining extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         String teamname = document.getString("Nom Equipe");
+                        String team_id = document.getString("ID");
                         String coachmail = document.getString("Email Coach");
                         if (teamname!=null && coachmail.equals(email) ){
+                            TeamIDsList.add(team_id);
                             TeamsList.add(teamname);
                         }
                     }
@@ -82,6 +85,7 @@ public class CreateTraining extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 team= parent.getSelectedItem().toString();
+                teamID= TeamIDsList.get(TeamsList.indexOf(team));
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -146,6 +150,7 @@ public class CreateTraining extends AppCompatActivity {
         training.put("TrainingName", TrainingName.getText().toString());
         training.put("Description", Description.getText().toString());
         training.put("Team", team);
+        training.put("TeamID", teamID);
         training.put("Email Coach", email);
         training.put("Date", eDate.getText().toString());
         training.put("HeureDep", eTimeDep.getText().toString());
