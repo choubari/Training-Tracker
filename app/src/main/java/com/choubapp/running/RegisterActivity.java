@@ -50,6 +50,9 @@ import java.util.Map;
 
 
 public class RegisterActivity extends AppCompatActivity {
+    // Constants
+    public static final String CHAT_PREFS = "ChatPrefs";
+    public static final String DISPLAY_NAME_KEY = "username";
 
     // TODO: Add member variables here:
     private String mDate;
