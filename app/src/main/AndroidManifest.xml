@@ -18,7 +18,8 @@
         <activity android:name=".CoachSettingsActivity" />
         <activity android:name=".CoachMemberlistActivity" />
         <activity android:name=".CoachReportsActivity" />
-        <activity android:name=".CoachMessagesActivity" />
+        <activity android:name=".CoachMessagesActivity"
+            android:windowSoftInputMode="adjustPan" />
         <activity android:name=".CoachTrainingActivity" />
         <activity
             android:name=".CoachDashboardActivity"
