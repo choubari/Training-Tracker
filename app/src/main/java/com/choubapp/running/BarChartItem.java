@@ -50,13 +50,13 @@ class BarChartItem extends ChartItem  {
             holder.chart.getDescription().setEnabled(false);
             holder.chart.setDrawGridBackground(false);
             holder.chart.setDrawBarShadow(false);
-
+/*
             XAxis xAxis = holder.chart.getXAxis();
             xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
             xAxis.setTypeface(mTf);
             xAxis.setDrawGridLines(false);
             xAxis.setDrawAxisLine(true);
-
+*/
             YAxis leftAxis = holder.chart.getAxisLeft();
             leftAxis.setTypeface(mTf);
             leftAxis.setLabelCount(5, false);

@@ -105,6 +105,7 @@ public class TrainingActivity extends AppCompatActivity {
                     }
 
                 }else{Log.d("TAG", "Error getting document: "+task.getException());}
+                updateText();
             }
         });
         /*    @Override
@@ -169,13 +170,9 @@ public class TrainingActivity extends AppCompatActivity {
         //look for the closet date
         System.out.println("after for"+Dates);
         next=findViewById(R.id.nexttraining);
-        if (Dates.isEmpty() ) {
-            if ( progressBar.getVisibility()==View.GONE)
-                next.setText("Vous n'avez aucun prochain entraînement");
-            else {
-                System.out.println("Ree");
-                replaceProgressbar();
-            }
+        if (Dates.isEmpty()) {
+             next.setText("Vous n'avez aucun prochain entraînement");
+             running=false;
         }else { if(alreadyStarted) {
             next.setText("Votre entraînement est déjà commencé depuis : \n");
             minDate = started;

@@ -13,9 +13,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
@@ -30,9 +35,11 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.sql.Timestamp;
@@ -48,30 +55,88 @@ import java.util.TreeMap;
 import static java.security.AccessController.getContext;
 
 public class CoachReportsActivity extends AppCompatActivity {
-    ListView lv;
+    ListView lv; LinearLayout Tdata;
     RelativeLayout loading;
+    FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     CollectionReference Teams = db.collection("Equipe");
     CollectionReference Trainings = db.collection("Entrainement");
     CollectionReference Trackings = db.collection("tracking");
-    HashMap<Timestamp,String> EndedTrainings = new HashMap<>();
+    String ID;
+    HashMap<Timestamp,String> EndedTrainings ;
     Map<Timestamp, String> map ;
-    ArrayList<Long> speed = new ArrayList<>();
-    ArrayList<Integer> steps = new ArrayList<>();
-    long distance=0, time=0;
+    ArrayList<Long> speed ;
+    ArrayList<Integer> steps;
+    long distance, time;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coach_reports);
         lv = findViewById(R.id.listView1);
+        Tdata = findViewById(R.id.TeamData);
         loading = findViewById(R.id.loading);
         //lv.setVisibility(View.INVISIBLE);
-        loading.setVisibility(View.GONE);
-        getTeamTrainingsData();
+        //loading.setVisibility(View.GONE);
+        LoadSpinnerData();
     }
 
-    private void getTeamTrainingsData(){
-        String Team ="ddwzDL";
+    public void LoadSpinnerData(){
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        List<String> TeamsList = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, TeamsList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        Teams.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        String teamname = document.getString("Nom Equipe");
+                        String coachmail = document.getString("Email Coach");
+                        if (teamname!=null && coachmail.equals(firebaseAuth.getCurrentUser().getEmail()) ){
+                            TeamsList.add(teamname);
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String team = parent.getSelectedItem().toString();
+                lv.setVisibility(View.INVISIBLE);
+                Tdata.setVisibility(View.INVISIBLE);
+                getTeamID(team);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
+    public void getTeamID(String Tname){
+        CollectionReference equipe = db.collection("Equipe");
+        equipe.whereEqualTo("Nom Equipe", Tname).whereEqualTo("Email Coach", firebaseAuth.getCurrentUser().getEmail())
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Log.d("TAG", document.getId() + " => " + document.getData());
+                                ID =document.get("ID").toString();
+                            }
+                            getTeamTrainingsData(ID);
+                        } else {
+                            Log.d("TAG", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+    }
+
+    private void getTeamTrainingsData(String Team){
+        EndedTrainings = new HashMap<>();
         Trainings.whereEqualTo("TeamID",Team).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -114,6 +179,10 @@ public class CoachReportsActivity extends AppCompatActivity {
         });
     }
     private void getDataforCharts(){
+        speed = new ArrayList<>();
+        steps = new ArrayList<>();
+        distance=0;
+        time=0;
         map = new TreeMap<Timestamp, String>(EndedTrainings);
         System.out.println("treemap ended trainings sorted"+map);
         System.out.println("map size: " + map.size());
@@ -158,11 +227,15 @@ public class CoachReportsActivity extends AppCompatActivity {
                                     speed.set(finalI, speed.get(finalI) / (counter[0]));
                                     steps.set(finalI, steps.get(finalI) / (counter[0]));
                                     System.out.println( "average i =  "+finalI+" "+speed + "  "+ steps);
-                                    if (finalI == (map.size()-1)) generateCharts();
+                                    if (finalI == (map.size()-1)) {
+                                        generateCharts();
+                                        loading.setVisibility(View.GONE);
+                                    }
                                 }
                             });
                         } else {
                             Log.d("TAG", "Document does not exist!");
+                            Toast.makeText(CoachReportsActivity.this, "Il semble qu'il n'existe pas assez de données des entraînements de cette équipe", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Log.d("TAG", "Failed with: ", task.getException());
@@ -173,22 +246,16 @@ public class CoachReportsActivity extends AppCompatActivity {
     }
 
     private void generateCharts(){
+        lv.setVisibility(View.VISIBLE);
+        Tdata.setVisibility(View.VISIBLE);
+        TextView TVdistance = findViewById(R.id.totaldistance);
+        TextView TVduration = findViewById(R.id.totaltime);
+        TVdistance.setText(String.valueOf((float)distance));
+        TVduration.setText(String.valueOf((float)time/60));
         ArrayList<ChartItem> list = new ArrayList<>();
-        // 30 items
-      /*  for (int i = 0; i < 30; i++) {
-
-            if(i % 3 == 0) {
-                list.add(new LineChartItem(generateDataLine(), getApplicationContext()));
-            } else if(i % 3 == 1) {
-                list.add(new BarChartItem(generateDataBar(), getApplicationContext()));
-            } else if(i % 3 == 2) {
-                list.add(new PieChartItem(generateDataPie(), getApplicationContext()));
-            }
-        }
-*/
         list.add(new LineChartItem(generateDataLine(), getApplicationContext()));
         list.add(new BarChartItem(generateDataBar(), getApplicationContext()));
-        list.add(new PieChartItem(generateDataPie(), getApplicationContext()));
+     //   list.add(new PieChartItem(generateDataPie(), getApplicationContext()));
         ChartDataAdapter cda = new ChartDataAdapter(getApplicationContext(), list);
         lv.setAdapter(cda);
     }
@@ -260,26 +327,11 @@ public class CoachReportsActivity extends AppCompatActivity {
         d1.setCircleRadius(4.5f);
         d1.setHighLightColor(Color.rgb(244, 117, 117));
         d1.setColor(ColorTemplate.VORDIPLOM_COLORS[0]);
-        d1.setCircleColor(ColorTemplate.VORDIPLOM_COLORS[0]);
+        d1.setCircleColor(ColorTemplate.MATERIAL_COLORS[0]);
         d1.setDrawValues(false);
-/*
-        ArrayList<Entry> values2 = new ArrayList<>();
 
-        for (int i = 0; i < 12; i++) {
-            values2.add(new Entry(i, values1.get(i).getY() - 30));
-        }
-
-        LineDataSet d2 = new LineDataSet(values2, "New DataSet " + cnt + ", (2)");
-        d2.setLineWidth(2.5f);
-        d2.setCircleRadius(4.5f);
-        d2.setHighLightColor(Color.rgb(244, 117, 117));
-        d2.setColor(ColorTemplate.VORDIPLOM_COLORS[0]);
-        d2.setCircleColor(ColorTemplate.VORDIPLOM_COLORS[0]);
-        d2.setDrawValues(false);
-*/
         ArrayList<ILineDataSet> sets = new ArrayList<>();
         sets.add(d1);
-        //  sets.add(d2);
 
         return new LineData(sets);
     }

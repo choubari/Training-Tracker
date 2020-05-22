@@ -140,8 +140,11 @@ public class CoachTrainingActivity extends AppCompatActivity {
                     progressBar=findViewById(R.id.progressBar2);
                     progressBar.setVisibility(View.GONE);
                     next=findViewById(R.id.nexttraining);
-                    if (Dates.isEmpty() && alreadyFinished)
+                    if (Dates.isEmpty())
+                    {
                         next.setText("Vous n'avez aucun prochain entraînement");
+                        running=false;
+                    }
                     else { if(alreadyStarted) {
                         next.setText("Votre entraînement est déjà commencé depuis : \n");
                         minDate = started;
