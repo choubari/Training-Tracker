@@ -18,6 +18,7 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         android:layout_marginLeft="10dp">
         <RelativeLayout
             android:layout_width="match_parent"
@@ -66,5 +67,21 @@
                 android:textColor="@color/colorAccent"
                 android:textSize="18sp" />
         </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/loading"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center" >
+
+            <ProgressBar
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:indeterminate="true" />
+        </RelativeLayout>
     </RelativeLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:id="@+id/tasksRecyclerView"/>
 </LinearLayout>
