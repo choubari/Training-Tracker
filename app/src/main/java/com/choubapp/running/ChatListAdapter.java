@@ -24,7 +24,6 @@ import java.util.ArrayList;
 public class ChatListAdapter extends BaseAdapter {
     private Activity mActivity;
     private DatabaseReference mDatabaseReference;
-    private String mDisplayName;
     private ArrayList<DataSnapshot> mSnapshotList;
 
     String teamIdSelected;
@@ -64,10 +63,8 @@ public class ChatListAdapter extends BaseAdapter {
         }
     };
 
-    public ChatListAdapter(Activity activity, DatabaseReference ref, String mDisplayName, String id){
+    public ChatListAdapter(Activity activity, DatabaseReference ref,  String id){
         mActivity = activity;
-        this.mDisplayName = mDisplayName;
-        Log.v("soufiane" , id +"\n"+ mDisplayName);
         teamIdSelected = id;
         mDatabaseReference = ref.child("messages");
         mDatabaseReference.addChildEventListener(mListener); // adding listenner to db

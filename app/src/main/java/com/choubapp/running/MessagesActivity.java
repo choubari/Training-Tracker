@@ -8,6 +8,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -22,15 +24,41 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class MessagesActivity extends AppCompatActivity {
+    String teamid;
+    private ListView mChatListView;
 
-            @Override
+    private DatabaseReference mDatabaseReference;
+
+
+    private ChatListAdapter mAdapter;
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages);
+        Intent intent = getIntent();
+        teamid = intent.getStringExtra(DashboardActivity.USER_TEAM);
 
-            }
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
+        mChatListView = (ListView) findViewById(R.id.chat_list_view1);
 
+    }
+
+    public void onStart(){
+        super.onStart();
+        mAdapter = new ChatListAdapter(this , mDatabaseReference,teamid);
+        mChatListView.setAdapter(mAdapter);
+    }
+
+    public void onStop() {
+        super.onStop();
+
+        // TODO: Remove the Firebase event listener on the adapter.
+        mAdapter.cleaunup();
+
+    }
 
 
 

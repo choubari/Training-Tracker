@@ -67,4 +67,10 @@
                 android:textSize="18sp" />
         </RelativeLayout>
     </RelativeLayout>
+
+    <ListView
+        android:id="@+id/chat_list_view1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="63dp" />
 </LinearLayout>

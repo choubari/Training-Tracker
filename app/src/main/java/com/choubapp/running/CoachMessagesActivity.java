@@ -4,9 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -33,7 +31,7 @@ import static com.choubapp.running.CoachDashboardActivity.USER_DATA;
 
 public class CoachMessagesActivity extends AppCompatActivity  {
     // TODO: Add member variables here:
-    private String mDisplayName;
+    private String coachname;
     private ListView mChatListView;
     private EditText mInputText;
     private ImageButton mSendButton;
@@ -44,7 +42,7 @@ public class CoachMessagesActivity extends AppCompatActivity  {
     private DatabaseReference mDatabaseReference;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     CollectionReference Teams = db.collection("Equipe");
-    private MembreAdapter adapter;
+    CollectionReference Coach = db.collection("coach");
 
     private ChatListAdapter mAdapter;
     @Override
@@ -131,9 +129,18 @@ public class CoachMessagesActivity extends AppCompatActivity  {
     }
     // TODO: Retrieve the display name from the Shared Preferences
     private void setupDisplayName(){
-        SharedPreferences prefs = getSharedPreferences(RegisterActivity.CHAT_PREFS, MODE_PRIVATE);
-        mDisplayName = prefs.getString(RegisterActivity.DISPLAY_NAME_KEY, null);
-        if (mDisplayName == null) mDisplayName = "Anonymous";
+        Coach.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        if(document.getString("Email").equals(email)) coachname = document.getString("FullName") ;
+                    }
+                }
+
+            }
+
+        });
 
     }
 
@@ -143,7 +150,7 @@ public class CoachMessagesActivity extends AppCompatActivity  {
         String input = mInputText.getText().toString();
 
         if(!input.equals("")){
-            InstantMessage chat = new InstantMessage(input ,email,teamidselected);
+            InstantMessage chat = new InstantMessage(input , coachname,teamidselected);
             mDatabaseReference.child("messages").push().setValue(chat);
             mInputText.setText("");
         }
@@ -153,7 +160,7 @@ public class CoachMessagesActivity extends AppCompatActivity  {
 
     public void onStart(){
         super.onStart();
-        mAdapter = new ChatListAdapter(this , mDatabaseReference, mDisplayName ,teamidselected);
+        mAdapter = new ChatListAdapter(this , mDatabaseReference,teamidselected);
         mChatListView.setAdapter(mAdapter);
     }
 

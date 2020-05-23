@@ -151,6 +151,7 @@ public class DashboardActivity extends AppCompatActivity {
     public void Messages(View v) {
         Intent intent = new Intent(this, MessagesActivity.class);
         intent.putExtra(USER_TEAM,Team);
+
         startActivity(intent);
     }
 
