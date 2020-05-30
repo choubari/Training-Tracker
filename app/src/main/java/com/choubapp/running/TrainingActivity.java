@@ -172,10 +172,10 @@ public class TrainingActivity extends AppCompatActivity {
         next=findViewById(R.id.nexttraining);
         if (Dates.isEmpty()) {
              next.setText("Vous n'avez aucun prochain entraînement");
-             running=false;
         }else { if(alreadyStarted) {
             next.setText("Votre entraînement est déjà commencé depuis : \n");
             minDate = started;
+            startTimer(minDate);
             //started
         } else{
             minDate = Collections.min(Dates);
@@ -185,17 +185,20 @@ public class TrainingActivity extends AppCompatActivity {
             String[] SplitedDate = minDate.toString().split(" ", 2);
             next.setText("Votre prochain entraînement sera le : \n" + SplitedDate[0] + " à " + SplitedDate[1] + "\n" + "il vous reste :");
             //startTimer(minDate);
+            startTimer(minDate);
+
         }
         }
-        startTimer(minDate);
     }
     private void startTimer(Date end) {
         thread = new Thread() {
             @Override
             public void run() {
+                System.out.println("I am on thread1");
                 try {
+                    System.out.println("I am on thread2" + running);
                     while (!isInterrupted() && running) {
-                        System.out.println("I am on thread");
+                        System.out.println("I am on thread3");
                         Thread.sleep(1000);
                         runOnUiThread(new Runnable() {
                             @Override
@@ -206,6 +209,7 @@ public class TrainingActivity extends AppCompatActivity {
                                 try {
                                     next=findViewById(R.id.nexttraining);
                                     Date date1 = new Date();
+
                                     date2 = simpleDateFormat.parse(String.valueOf(end));
                                     if (alreadyStarted) {
                                         printDifference(date2, date1);
@@ -282,7 +286,6 @@ public class TrainingActivity extends AppCompatActivity {
 
         if (status.equals("start")) {
             thread.interrupt();
-            running=false;
             Intent intent = new Intent(this, MemberTrainingTime.class);
             intent.putExtra("TrainingID",NextTrainingID);
             intent.putExtra("usermail",email);
@@ -290,6 +293,7 @@ public class TrainingActivity extends AppCompatActivity {
             intent.putExtra("username",UserUsername);
             startActivity(intent);
             finish();
+            running=false;
         }else{
             if (status.equals("stop"))
                 Toast.makeText(this, "Votre entraînement est déjà arrêté par votre Coach", Toast.LENGTH_SHORT).show();

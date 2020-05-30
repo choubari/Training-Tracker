@@ -143,8 +143,8 @@ public class TasksActivity extends AppCompatActivity {
                                             durations.add(doc.getLong("TotalTime")/60);
                                             System.out.println("Time "+doc.getLong("TotalTime")/60);
                                         }
+                                        if (finalI == (map.size()-1)) setRecyclerView();
                                     }
-                                    if (finalI == (map.size()-1)) setRecyclerView();
                                 }
                             });
 

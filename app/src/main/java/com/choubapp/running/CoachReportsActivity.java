@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -191,8 +192,8 @@ public class CoachReportsActivity extends AppCompatActivity {
             steps.add(0);
         }
         System.out.println("steps "+ steps + " speed "+ speed);
-        final int[] counter = {0};
         for (int i=0 ; i<map.size(); i++){
+            final int[] counter = {0};
             Timestamp key = (Timestamp) map.keySet().toArray()[i];
             String docID= map.get(key);
             int finalI = i;
@@ -210,32 +211,37 @@ public class CoachReportsActivity extends AppCompatActivity {
                                         long dist=0, tm=0;
                                         for (DocumentSnapshot DOC : task.getResult()){
                                             counter[0]++;
-                                            long sp = (long) ((long) DOC.get("Distance") / (long)DOC.get("TotalTime"));
-                                            speed.set(finalI,speed.get(finalI)+sp);
+                                            long sp = (Long.parseLong( DOC.get("Distance").toString())/ Long.parseLong(DOC.get("TotalTime").toString()));
+                                            System.out.println("speed" +"  "+sp);
+                                            speed.set(finalI, (long) (speed.get(finalI)+sp));
                                             long stp = (long) DOC.get("Steps");
-                                            //System.out.println("st sp"+ stp + "  "+sp);
                                             steps.set(finalI,steps.get(finalI)+(int)stp);
                                             dist+= (long) DOC.get("Distance");
                                             tm+=(long)DOC.get("TotalTime");
+
                                             System.out.println("participant " +finalI+" speed "+speed.get(finalI)+" steps "+steps.get(finalI)+" dist "+dist+ " time "+ tm);
                                         }
                                         distance += dist / counter[0];
                                         time += tm / counter[0];
                                         System.out.println("average distance "+distance + "avg time "+ time + "while counter = "+ counter[0]);
+                                        if (finalI == (map.size()-1) && task.isComplete()) {
+                                            Handler handler = new Handler();
+                                            handler.postDelayed(new Runnable() {
+                                                public void run() {
+                                                    generateCharts();
+                                                    loading.setVisibility(View.GONE);
+                                                }
+                                            }, 2000);
+                                        }
                                     }
                                     System.out.println("speed of training n° "+finalI + "is "+ speed.get(finalI) + "and avg steps  = "+ steps.get(finalI));
                                     speed.set(finalI, speed.get(finalI) / (counter[0]));
                                     steps.set(finalI, steps.get(finalI) / (counter[0]));
                                     System.out.println( "average i =  "+finalI+" "+speed + "  "+ steps);
-                                    if (finalI == (map.size()-1)) {
-                                        generateCharts();
-                                        loading.setVisibility(View.GONE);
-                                    }
                                 }
                             });
                         } else {
                             Log.d("TAG", "Document does not exist!");
-                            Toast.makeText(CoachReportsActivity.this, "Il semble qu'il n'existe pas assez de données des entraînements de cette équipe", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Log.d("TAG", "Failed with: ", task.getException());
@@ -246,12 +252,14 @@ public class CoachReportsActivity extends AppCompatActivity {
     }
 
     private void generateCharts(){
+        System.out.println("Hellooo");
+        System.out.println( "average i =  "+speed + "  "+ steps);
         lv.setVisibility(View.VISIBLE);
         Tdata.setVisibility(View.VISIBLE);
         TextView TVdistance = findViewById(R.id.totaldistance);
         TextView TVduration = findViewById(R.id.totaltime);
         TVdistance.setText(String.valueOf((float)distance));
-        TVduration.setText(String.valueOf((float)time/60));
+        TVduration.setText(String.valueOf((int)time/60));
         ArrayList<ChartItem> list = new ArrayList<>();
         list.add(new LineChartItem(generateDataLine(), getApplicationContext()));
         list.add(new BarChartItem(generateDataBar(), getApplicationContext()));

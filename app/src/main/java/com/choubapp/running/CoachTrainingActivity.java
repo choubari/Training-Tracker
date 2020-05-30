@@ -143,7 +143,6 @@ public class CoachTrainingActivity extends AppCompatActivity {
                     if (Dates.isEmpty())
                     {
                         next.setText("Vous n'avez aucun prochain entraînement");
-                        running=false;
                     }
                     else { if(alreadyStarted) {
                         next.setText("Votre entraînement est déjà commencé depuis : \n");
@@ -217,12 +216,12 @@ public class CoachTrainingActivity extends AppCompatActivity {
 
     public void StartTraining(View v){
         thread.interrupt();
-        running=false;
         Intent intent = new Intent(this, CoachTrainingTime.class);
         intent.putExtra(USER_DATA,email);
         intent.putExtra("TrainingID",NextTrainingID);
         startActivity(intent);
         finish();
+        running=false;
     }
 
 
