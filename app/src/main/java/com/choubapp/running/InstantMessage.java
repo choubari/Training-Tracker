@@ -19,15 +19,15 @@ public class InstantMessage {
 
     }
 
-    String getMessage() {
+    public String getMessage() {
         return message;
     }
 
-    String getCoachName() {
+    public String getCoachName() {
         return coachName;
     }
 
-    String getTeamId() {
+    public String getTeamId() {
         return teamId;
     }
 
