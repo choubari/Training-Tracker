@@ -9,6 +9,7 @@ public class Membre {
 
 
     public Membre(){
+      
     }
     public Membre(String fullName, String username, String email, String birth, String team) {
         FullName = fullName;
@@ -20,7 +21,7 @@ public class Membre {
 
     public String getTeam() { return Team; }
 
-    String getFullName() {
+    public String getFullName() {
         return FullName;
     }
 
@@ -32,7 +33,7 @@ public class Membre {
         return Email;
     }
 
-    String getBirth() {
+    public String getBirth() {
         return Birth;
     }
 }
