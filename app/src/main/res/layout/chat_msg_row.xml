@@ -22,16 +22,26 @@
 
     <TextView
         android:id="@+id/message"
-        android:layout_gravity="start"
-
-        android:gravity="center_vertical"
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
+        android:layout_gravity="start"
         android:layout_margin="5dip"
+        android:gravity="center_vertical"
         android:padding="10dp"
-        android:textSize="15sp"
         android:text="@string/sample_message"
         android:textColor="@android:color/primary_text_light"
-        />
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/Time"
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="5dip"
+        android:textAlignment="gravity"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="15sp" />
 
 </LinearLayout>

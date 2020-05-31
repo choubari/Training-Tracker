@@ -7,7 +7,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.app.ActivityManager;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -46,17 +45,14 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.choubapp.running.CoachDashboardActivity.USER_DATA;
 
@@ -97,50 +93,49 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
-        mMapView = (MapView) findViewById(R.id.user_list_map);
+        mMapView = findViewById(R.id.user_list_map);
         mMapView.onCreate(mapViewBundle);
         mMapView.getMapAsync(this);
-
     }
 
     private void GetStartEndPoints(){
-        db.collection("Entrainement").document(trainingID).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            Log.d("TAG", document.getId() + " => " + document.getData());
-                            Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                            try {
-                                List<Address> addressStart = geoCoder.getFromLocationName(document.get("LieuDep").toString(), 1);
-                                if (!addressStart.isEmpty()) {
-                                    double latitudeStart = addressStart.get(0).getLatitude();
-                                    double longitudeStart = addressStart.get(0).getLongitude();
-                                    Start = new GeoPoint(latitudeStart, longitudeStart);
-                                }
-                                List<Address> addressEnd = geoCoder.getFromLocationName(document.get("LieuArr").toString(), 1);
-                                if (!addressEnd.isEmpty()) {
-                                    double latitudeEnd = addressEnd.get(0).getLatitude();
-                                    double longitudeEnd = addressEnd.get(0).getLongitude();
-                                    End = new GeoPoint(latitudeEnd, longitudeEnd);
-                                }
-                                createTrackingofTraining();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
+        // affichier les markeurs vert et rouge qui identifient lieu depart et d'arrivee
+        db.collection("Entrainement").document(trainingID).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    Log.d("TAG", document.getId() + " => " + document.getData());
+                    Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                    try {
+                        List<Address> addressStart = geoCoder.getFromLocationName(document.get("LieuDep").toString(), 1);
+                        if (!addressStart.isEmpty()) {
+                            double latitudeStart = addressStart.get(0).getLatitude();
+                            double longitudeStart = addressStart.get(0).getLongitude();
+                            // recuperer les coordonnees geographique du point de depart
+                            Start = new GeoPoint(latitudeStart, longitudeStart);
                         }
-                    } else {
-                        Log.d("TAG", "Error getting documents: ", task.getException());
+                        List<Address> addressEnd = geoCoder.getFromLocationName(document.get("LieuArr").toString(), 1);
+                        if (!addressEnd.isEmpty()) {
+                            double latitudeEnd = addressEnd.get(0).getLatitude();
+                            double longitudeEnd = addressEnd.get(0).getLongitude();
+                            // recuperer les coordonnees geographique du point d'arrivee
+                            End = new GeoPoint(latitudeEnd, longitudeEnd);
+                        }
+                        // creer un document dans la collection tracking
+                        createTrackingofTraining();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+
                 }
-            });
+            } else {
+                Log.d("TAG", "Error getting documents: ", task.getException());
+            }
+        });
 
     }
 
     private void setCameraView() {
-       // GetStartEndPoints();
         if (userCoordinates!= null) {
             double bottomBoundary = userCoordinates.getLatitude() - .01;
             double topBoundary = userCoordinates.getLatitude() + .01;
@@ -152,6 +147,7 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
     }
 
     private void createTrackingofTraining(){
+        //creer un document dans la collection tracking
         Map<String, Object> newtrack = new HashMap<>();
         newtrack.put("TrainingID", trainingID);
         newtrack.put("EmailCoach", email);
@@ -160,67 +156,55 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
         newtrack.put("End", End);
         trackingTrainingDoc.set(newtrack);
     }
+    // arreter l 'entrainement
     public void StopTraining(View view) {
         updateTrainingStatus();
     }
     private void  updateTrainingStatus(){
+        // mise a jour du status
         trackingTrainingDoc.update("Status", "stop")
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d("TAG", "DocumentSnapshot successfully updated!");
-                        Toast.makeText(CoachTrainingTime.this, "Vous avez arrêté votre entraînement", Toast.LENGTH_SHORT).show();
-                        CoachTrainingTime.super.onBackPressed();
-                    }
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("TAG", "DocumentSnapshot successfully updated!");
+                    Toast.makeText(CoachTrainingTime.this, "Vous avez arrêté votre entraînement", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getApplicationContext(), CoachDashboardActivity.class);
+                    finish();
+                    startActivity(intent);
+                    //CoachTrainingTime.super.onBackPressed();
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("TAG", "Error updating document", e);
-                    }
-                });
+                .addOnFailureListener(e -> Log.w("TAG", "Error updating document", e));
     }
 
-
-
+    // afficher dans la carte les markeurs des participants
     private void getParticipantsData(){
         GetStartEndPoints();
-
         getLastKnownLocation();
         UsersLocations.clear();
         UsersNames.clear();
         particpdoc.whereEqualTo("Availability", true)
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                Log.d("TAG", document.getId() + " => " + document.getData());
-                                GeoPoint geo = (GeoPoint) document.get("Location");
-                                UsersLocations.add(geo);
-                                String title = document.get("Fullname").toString();
-                                UsersNames.add(title);
-                                // marker.hideInfoWindow();
-                                // marker.showInfoWindow();
-                                //mGoogleMap.clear();
-                                //getLastKnownLocation();
-                            }
-                            updateMapMarkers();
-                        } else {
-                            Log.d("TAG", "Error getting documents: ", task.getException());
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Log.d("TAG", document.getId() + " => " + document.getData());
+                            GeoPoint geo = (GeoPoint) document.get("Location");
+                            UsersLocations.add(geo);
+                            String title = document.get("Fullname").toString();
+                            UsersNames.add(title);
                         }
+                        // mise a jour des markeurs dans la carte
+                        updateMapMarkers();
+                    } else {
+                        Log.d("TAG", "Error getting documents: ", task.getException());
                     }
                 });
     }
+
     private void startUserLocationsRunnable(){
         Log.d("TAG", "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
-        mHandler.postDelayed(mRunnable = new Runnable() {
-            @Override
-            public void run() {
-                getParticipantsData();
-                mHandler.postDelayed(mRunnable, LOCATION_UPDATE_INTERVAL);
-            }
+        mHandler.postDelayed(mRunnable = () -> {
+            // mise a jour des markeurs de participants chaque 5 secondes
+            getParticipantsData();
+            mHandler.postDelayed(mRunnable, LOCATION_UPDATE_INTERVAL);
         }, LOCATION_UPDATE_INTERVAL);
     }
 
@@ -228,13 +212,16 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
         mHandler.removeCallbacks(mRunnable);
     }
     private void updateMapMarkers(){
+        // mise à jour des markeurs dans la carte
         if (mGoogleMap!=null){
+            // on supprimer les markeurs precedents pour eviter la duplication
             mGoogleMap.clear();
+            // markeur vert pour le lieu de départ avec titre "Début"
             mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(Start.getLatitude(), Start.getLongitude())).title("Début").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+            // markeur vert pour le lieu d'arrivée avec titre "Fin"
             mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(End.getLatitude(), End.getLongitude())).title("Fin").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-            System.out.println("Participants:  " +UsersNames);
             for (int i =0 ; i< UsersLocations.size();i++) {
-                System.out.println("Marker setted");
+                // markeur bleu pour les participants, lorsqu'on clique dedans, le nom du joueur s'affiche
                 mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(UsersLocations.get(i).getLatitude(), UsersLocations.get(i).getLongitude())).title(UsersNames.get(i)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
             }
         }
@@ -242,80 +229,40 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
 
     @Override
     public void onBackPressed() {
+        // afficher une fenetre pour confirmer l'arret de l'entrainement lorsqu'on clique sur la boutton de revenir en arrière
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Arrêter l'Entraînement?");
         builder.setMessage("Voules-vous arrêter cet entraînement pour vous et pour les membres? ");
-        builder.setPositiveButton("Oui", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                updateTrainingStatus();
-            }
-        });
-        builder.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.dismiss();
-            }
-        });
+        builder.setPositiveButton("Oui", (dialog, id) -> updateTrainingStatus());
+        builder.setNegativeButton("Annuler", (dialog, id) -> dialog.dismiss());
         builder.show();
     }
+
+    // verifier si le service Maps du playServices existe dans le telephone
     private boolean checkMapServices(){
         if(isServicesOK()){
             if(isMapsEnabled()){
-               // getLastKnownLocation();
                 return true;
             }
         }
         return false;
     }
-
-    private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Pour accéder à l'entraînement, vous devez activer GPS. Voulez-vous l'activer ?")
-                .setCancelable(false)
-                .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
-    }
-
     public boolean isMapsEnabled(){
         final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
             buildAlertMessageNoGps();
             return false;
         }
         return true;
     }
-
-    private void getLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-            //getChatrooms();
-            //getParticipantsData();
-            System.out.println("1chatroom");
-            getLastKnownLocation();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
     public boolean isServicesOK(){
         Log.d("TAG", "isServicesOK: checking google services version");
-
         int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
-
         if(available == ConnectionResult.SUCCESS){
-            //everything is fine and the user can make map requests
             Log.d("TAG", "isServicesOK: Google Play Services is working");
             return true;
         }
         else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
-            //an error occured but we can resolve it
             Log.d("TAG", "isServicesOK: an error occured but we can fix it");
             Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(this, available, ERROR_DIALOG_REQUEST);
             dialog.show();
@@ -325,6 +272,29 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
         return false;
     }
 
+    // fenetre pour activer GPS
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Pour accéder à l'entraînement, vous devez activer GPS. Voulez-vous l'activer ?")
+                .setCancelable(false)
+                .setPositiveButton("Oui", (dialog, id) -> {
+                    Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    // demander acces à la localisation
+    private void getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+            getLastKnownLocation();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[],
@@ -332,7 +302,6 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
         mLocationPermissionGranted = false;
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
@@ -340,7 +309,7 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
             }
         }
     }
-
+    // si GPS est activé on recupere la derniere localisation de l'utilisateur, sinon on demande la permission d'acces à la location
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -348,10 +317,7 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if(mLocationPermissionGranted){
-                    System.out.println("2chatroom");
                     getLastKnownLocation();
-                  //  getParticipantsData();
-                   // getChatrooms();
                 }
                 else{
                     getLocationPermission();
@@ -359,43 +325,36 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
             }
         }
     }
+    // derniere location assurée par le service de localisation
     private void getLastKnownLocation() {
         Log.d("TAG", "getLastKnownLocation: called.");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        //getParticipantsData();
-        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-            @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                if (task.isSuccessful()) {
-                    Location location = task.getResult();
-                    if (location!=null) {
-                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                        Log.d("TAG", "onComplete: latitude: " + geoPoint.getLatitude());
-                        Log.d("TAG", "onComplete: longitude: " + geoPoint.getLongitude());
-                        setUserCoordinates(geoPoint);
-
-                        if (!alreadyViewSet) {
-                            System.out.println("zoom");
-                            setCameraView();
-                            alreadyViewSet = true;
-                        }
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Location location = task.getResult();
+                if (location!=null) {
+                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                    Log.d("TAG", "onComplete: latitude: " + geoPoint.getLatitude());
+                    Log.d("TAG", "onComplete: longitude: " + geoPoint.getLongitude());
+                    setUserCoordinates(geoPoint);
+                    if (!alreadyViewSet) {
+                        setCameraView(); // zoom sur la position
+                        alreadyViewSet = true;
                     }
                 }
             }
         });
-
     }
 
+    // si l'utilisateur verouille puis déverouille son telephone, on persiste l'affichage de la carte géographique et on verifie l'activation du GPS
     @Override
     protected void onResume() {
         super.onResume();
         if(checkMapServices()){
             if(mLocationPermissionGranted){
-               // getChatrooms();
                 startUserLocationsRunnable();
-                System.out.println("3chatroom");
                 mMapView.onResume();
                 getLastKnownLocation();
             }
@@ -408,7 +367,6 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
         if (mapViewBundle == null) {
             mapViewBundle = new Bundle();
@@ -436,8 +394,7 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
 
     @Override
     public void onMapReady(GoogleMap map) {
-        //map.addMarker(new MarkerOptions().position(new LatLng(34.2249, -5.7069)).title("Fin").draggable(true) .icon(BitmapDescriptorFactory.fromResource(R.drawable.user_marker)));
-        map.setMyLocationEnabled(true);
+        map.setMyLocationEnabled(true); // afficher le point bleu sur ma location
         mGoogleMap=map;
         getLastKnownLocation();
     }
@@ -463,7 +420,6 @@ public class CoachTrainingTime extends AppCompatActivity  implements OnMapReadyC
     }
     public void setUserCoordinates(GeoPoint userCoordinates) {
         this.userCoordinates = userCoordinates;
-        //setCameraView();
     }
 
 }

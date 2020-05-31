@@ -7,7 +7,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 
 public class LockOrientation extends Application {
-
+// le but de ce code est de assurer que tous les menus de l'application s'ouvrent en mode portrait et de vérouiller cette orientation
     @Override
     public void onCreate() {
         super.onCreate();

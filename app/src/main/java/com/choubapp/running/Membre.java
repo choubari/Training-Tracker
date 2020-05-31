@@ -9,7 +9,6 @@ public class Membre {
 
 
     public Membre(){
-        //empty constructor needed
     }
     public Membre(String fullName, String username, String email, String birth, String team) {
         FullName = fullName;
@@ -21,7 +20,7 @@ public class Membre {
 
     public String getTeam() { return Team; }
 
-    public String getFullName() {
+    String getFullName() {
         return FullName;
     }
 
@@ -33,7 +32,7 @@ public class Membre {
         return Email;
     }
 
-    public String getBirth() {
+    String getBirth() {
         return Birth;
     }
 }

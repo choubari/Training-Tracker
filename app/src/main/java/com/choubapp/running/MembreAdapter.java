@@ -13,7 +13,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
 public class MembreAdapter extends FirestoreRecyclerAdapter<Membre, MembreAdapter.MembreHolder> {
 
-    public MembreAdapter(@NonNull FirestoreRecyclerOptions<Membre> options) {
+    MembreAdapter(@NonNull FirestoreRecyclerOptions<Membre> options) {
         super(options);
     }
 
@@ -32,13 +32,13 @@ public class MembreAdapter extends FirestoreRecyclerAdapter<Membre, MembreAdapte
         return new MembreHolder(v);
     }
 
-    class MembreHolder extends RecyclerView.ViewHolder {
+    static class MembreHolder extends RecyclerView.ViewHolder {
         TextView textViewFullName;
         TextView textViewUsername;
         TextView textViewEmail;
         TextView textViewBirth;
 
-        public MembreHolder(View itemView) {
+        MembreHolder(View itemView) {
             super(itemView);
             textViewFullName = itemView.findViewById(R.id.text_view_name);
             textViewUsername = itemView.findViewById(R.id.text_view_username);

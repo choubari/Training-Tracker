@@ -108,14 +108,9 @@ public class LocationService extends Service {
                         Location location = locationResult.getLastLocation();
                         if (location != null) {
                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            userInfoDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    Boolean av = (Boolean) task.getResult().get("Availability");
-                                    // System.out.println("+++");
-                                    saveUserLocation(geoPoint , av);
-
-                                }
+                            userInfoDoc.get().addOnCompleteListener(task -> {
+                                Boolean av = (Boolean) task.getResult().get("Availability");
+                                saveUserLocation(geoPoint , av);
                             });
                             saveDistance(geoPoint);
 
@@ -126,18 +121,16 @@ public class LocationService extends Service {
     }
 
     private void saveUserLocation(final GeoPoint geo , Boolean av){
-
+        // enregistrer la localisation du membre lorsqu'il est encore participant dans l'entrainement
         try{
             if (av) {
-                userInfoDoc.update("Location", geo).addOnCompleteListener((OnCompleteListener<Void>) task -> {
+                userInfoDoc.update("Location", geo).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "onComplete: \ninserted user location into database." +
                                 "\n latitude: " + geo.getLatitude() +
                                 "\n longitude: " + geo.getLongitude());
                     }
                 });
-
-
             } else stopSelf();
         }catch (NullPointerException e){
             Log.e(TAG, "saveUserLocation: User instance is null, stopping location service.");
@@ -148,35 +141,30 @@ public class LocationService extends Service {
     private void saveDistance(GeoPoint geo){
         if (previous!=null) {
             long distance = calculateDistance(previous, geo);
-            //GeoPoint one = new GeoPoint(34.033696899999995,-6.770813800000001);
-            //GeoPoint two = new GeoPoint(33.9973135,-6.8490851);
-            //long testdistance = calculateDistance(one , two);
-            //System.out.println("distance in meters :"+testdistance);
             if (distance != 0) {
                 System.out.println("distance in meters :" + distance);
-                userInfoDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                if (document.get("Distance") != null) {
-                                    long previousDistance = (long) document.get("Distance");
-                                    userInfoDoc.update("Distance", distance + previousDistance);
-                                } else {
-                                    userInfoDoc.update("Distance", distance);
-                                    Log.d(TAG, "previous distance does not exist");
-                                }
+                userInfoDoc.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            if (document.get("Distance") != null) {
+                                long previousDistance = (long) document.get("Distance");
+                                // mise a jour du distance
+                                userInfoDoc.update("Distance", distance + previousDistance);
+                            } else {
+                                // enregistrer la distance
+                                userInfoDoc.update("Distance", distance);
+                                Log.d(TAG, "previous distance does not exist");
                             }
                         }
                     }
                 });
-                //userInfoDoc.update("Distance", distance);
             }
         }
         previous = geo;
     }
     private long calculateDistance(GeoPoint prv , GeoPoint nxt) {
+        // callculer distance entre deux points geographiques
         double lat1 = prv.getLatitude();
         double lng1 = prv.getLatitude();
         double lat2 = nxt.getLatitude();
@@ -189,8 +177,7 @@ public class LocationService extends Service {
                 * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
                 * Math.sin(dLon / 2);
         double c = 2 * Math.asin(Math.sqrt(a));
-        long distanceInMeters = Math.round(6371000 * c);
-        return distanceInMeters;
+        return Math.round(6371000 * c);
     }
 
 

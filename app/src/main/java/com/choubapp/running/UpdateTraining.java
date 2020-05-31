@@ -57,7 +57,7 @@ public class UpdateTraining extends AppCompatActivity {
         setContentView(R.layout.activity_update_training);
         Data=findViewById(R.id.trainingINFO);
         Data.setVisibility(View.INVISIBLE);
-        Spinner spinner = (Spinner) findViewById(R.id.spinnertrainings);
+        Spinner spinner = findViewById(R.id.spinnertrainings);
         LoadSpinnerData(spinner,"TrainingName",Trainings);
     }
     public void LoadSpinnerData(Spinner spinner, String field, CollectionReference trainings){
@@ -65,21 +65,18 @@ public class UpdateTraining extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, TrainingsList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        trainings.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        String trainingName = document.getString(field);
-                        String coachmail = document.getString("Email Coach");
-                        if (trainingName!=null && coachmail.equals(email) ){
-                            TrainingsList.add(trainingName);
-                        }
-                        if (field.equals("Nom Equipe")) sp.setSelection(((ArrayAdapter<String>)sp.getAdapter()).getPosition(LoadedTeam));
-
+        trainings.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    String trainingName = document.getString(field);
+                    String coachmail = document.getString("Email Coach");
+                    if (trainingName!=null && coachmail.equals(email) ){
+                        TrainingsList.add(trainingName);
                     }
-                    adapter.notifyDataSetChanged();
+                    if (field.equals("Nom Equipe")) sp.setSelection(((ArrayAdapter<String>)sp.getAdapter()).getPosition(LoadedTeam));
+
                 }
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -88,15 +85,14 @@ public class UpdateTraining extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 currentTraining= parent.getSelectedItem().toString();
                 RetreiveTrainingData(currentTraining);
-
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
         });
-
     }
+    // afficher les données de l'entrainement dans les cases correspondantes
     public void RetreiveTrainingData(String tr){
         b=false;
         Data.setVisibility(View.VISIBLE);
@@ -109,38 +105,37 @@ public class UpdateTraining extends AppCompatActivity {
         TimeArr=findViewById(R.id.heurearr);
         Trainings.whereEqualTo("TrainingName", tr)
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                Log.d("TAG", document.getId() + " => " + document.getData());
-                                docID= document.getId();
-                                Name.setText(document.get("TrainingName").toString());
-                                Desc.setText(document.get("Description").toString());
-                                date.setText(document.get("Date").toString());
-                                LieuDep.setText(document.get("LieuDep").toString());
-                                LieuArr.setText(document.get("LieuArr").toString());
-                                TimeDep.setText(document.get("HeureDep").toString());
-                                TimeArr.setText(document.get("HeureArr").toString());
-                                LoadedTeam=document.get("Team").toString();
-                                System.out.println(b);
-                                sp=findViewById(R.id.pickteam);
-                                if (!b){
-                                    selectTeam(sp);
-                                    b=true;
-                                }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Log.d("TAG", document.getId() + " => " + document.getData());
+                            docID= document.getId();
+                            Name.setText(document.get("TrainingName").toString());
+                            Desc.setText(document.get("Description").toString());
+                            date.setText(document.get("Date").toString());
+                            LieuDep.setText(document.get("LieuDep").toString());
+                            LieuArr.setText(document.get("LieuArr").toString());
+                            TimeDep.setText(document.get("HeureDep").toString());
+                            TimeArr.setText(document.get("HeureArr").toString());
+                            LoadedTeam=document.get("Team").toString();
+                            System.out.println(b);
+                            sp=findViewById(R.id.pickteam);
+                            if (!b){
+                                selectTeam(sp);
+                                b=true;
                             }
-                        } else {
-                            Log.d("TAG", "Error getting documents: ", task.getException());
                         }
+                    } else {
+                        Log.d("TAG", "Error getting documents: ", task.getException());
                     }
                 });
     }
+    // action si le coach clique sur spinner, il affiche les noms de ses équipes
     public void selectTeam(View v){
         sp=findViewById(R.id.pickteam);
         LoadSpinnerData(sp, "Nom Equipe",Teams);
     }
+    // enregistrer les données modifiées
     public void SaveEdited(View v) {
         db.collection("Entrainement").document(docID).update(
                 "TrainingName",Name.getText().toString(),
@@ -156,77 +151,52 @@ public class UpdateTraining extends AppCompatActivity {
         BacktoDashboard(v);
 
     }
+    // clique sur le boutton de suppression de l'entrainement
     public void deleteTraining(View v) {
         new AlertDialog.Builder(this)
                 .setTitle("Supprimer l'Entraînement")
                 .setMessage("Voulez-vous supprimer cet entraînement? (action irreversible)")
-                .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        db.collection("Entrainement").document(docID)
-                                .delete()
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d("TAG", "DocumentSnapshot successfully deleted!");
-                                        BacktoDashboard(v);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w("TAG", "Error deleting document", e);
-                                    }
-                                });
-                    }
-                })
+                .setPositiveButton("Oui", (dialog, which) -> db.collection("Entrainement").document(docID)
+                        .delete()
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("TAG", "DocumentSnapshot successfully deleted!");
+                            BacktoDashboard(v);
+                        })
+                        .addOnFailureListener(e -> Log.w("TAG", "Error deleting document", e)))
                 .setNegativeButton("Non", null)
                 .show();
     }
+    // fenetre pour choisir la date
     public void DatePicker(View v) throws ParseException {
         final DatePickerDialog[] picker = new DatePickerDialog[1];
         date= findViewById(R.id.trainingdate);
-        //eText.setInputType(InputType.TYPE_NULL);
         final Calendar cldr = Calendar.getInstance();
         int day = cldr.get(Calendar.DAY_OF_MONTH);
         int month = cldr.get(Calendar.MONTH);
         int year = cldr.get(Calendar.YEAR);
-        picker[0] = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                date.setText(String.format("%02d", dayOfMonth) + "-" + String.format("%02d", (monthOfYear + 1)) + "-" + year);
-            }
-        }, year, month, day);
+        picker[0] = new DatePickerDialog(this, (view, year1, monthOfYear, dayOfMonth) -> date.setText(String.format("%02d", dayOfMonth) + "-" + String.format("%02d", (monthOfYear + 1)) + "-" + year1), year, month, day);
         picker[0].getDatePicker().setMinDate(new Date().getTime());
         picker[0].show();
     }
-
+    // fenetre pour choisir l'heure de départ
     public void TimePickerDep(View v){
         TimeDep= findViewById(R.id.heuredep);
         Calendar mcurrentTime = Calendar.getInstance();
         int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
         int minute = mcurrentTime.get(Calendar.MINUTE);
         TimePickerDialog mTimePicker;
-        mTimePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                TimeDep.setText(String.format("%02d", selectedHour )+ ":" + String.format("%02d", selectedMinute));
-            }
-        }, hour, minute, true);//Yes 24 hour time
+        mTimePicker = new TimePickerDialog(this, (timePicker, selectedHour, selectedMinute) -> TimeDep.setText(String.format("%02d", selectedHour )+ ":" + String.format("%02d", selectedMinute)), hour, minute, true);
         mTimePicker.setTitle("Select Time");
         mTimePicker.show();
     }
+    // fenetre pour choisir l'heure d'arrivée
     public void TimePickerArr(View v){
         TimeArr= findViewById(R.id.heurearr);
         Calendar mcurrentTime = Calendar.getInstance();
         int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
         int minute = mcurrentTime.get(Calendar.MINUTE);
         TimePickerDialog mTimePicker;
-        mTimePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                TimeArr.setText( String.format("%02d", selectedHour )+ ":" + String.format("%02d", selectedMinute));
-            }
-        }, hour, minute, true);//Yes 24 hour time
+        mTimePicker = new TimePickerDialog(this, (timePicker, selectedHour, selectedMinute) -> TimeArr.setText( String.format("%02d", selectedHour )+ ":" + String.format("%02d", selectedMinute)), hour, minute, true);
         mTimePicker.setTitle("Select Time");
         mTimePicker.show();
     }

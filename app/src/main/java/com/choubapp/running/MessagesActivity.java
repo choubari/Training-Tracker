@@ -1,27 +1,20 @@
 package com.choubapp.running;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MessagesActivity extends AppCompatActivity {
     String teamid;
@@ -32,6 +25,9 @@ public class MessagesActivity extends AppCompatActivity {
 
     private ChatListAdapter mAdapter;
 
+    TextView date;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -39,23 +35,44 @@ public class MessagesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_messages);
         Intent intent = getIntent();
         teamid = intent.getStringExtra(DashboardActivity.USER_TEAM);
-
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        mChatListView = (ListView) findViewById(R.id.chat_list_view1);
+        mChatListView = findViewById(R.id.chat_list_view1);
+        date = findViewById(R.id.date1);
 
     }
 
+    public void ChangeDate() {
+        mChatListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (totalItemCount != 0) {
+
+                    if (mAdapter.getDateselected(firstVisibleItem + visibleItemCount - 1).equals(new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()))) {
+                        date.setText("Today");
+                    } else {
+                        date.setText(mAdapter.getDateselected(firstVisibleItem + visibleItemCount - 1));
+                    }
+                }
+
+            }
+        });
+
+    }
     public void onStart(){
         super.onStart();
         mAdapter = new ChatListAdapter(this , mDatabaseReference,teamid);
         mChatListView.setAdapter(mAdapter);
+        ChangeDate();
     }
 
     public void onStop() {
         super.onStop();
-
-        // TODO: Remove the Firebase event listener on the adapter.
         mAdapter.cleaunup();
 
     }

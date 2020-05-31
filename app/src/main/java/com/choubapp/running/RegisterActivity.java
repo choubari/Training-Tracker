@@ -1,38 +1,27 @@
 package com.choubapp.running;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-//import android.support.annotation.NonNull;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.fragment.app.DialogFragment;
-
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.Date;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Calendar;
-import  java.text.SimpleDateFormat;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,28 +31,18 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.auth.User;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 
 public class RegisterActivity extends AppCompatActivity {
-    // Constants
-    public static final String CHAT_PREFS = "ChatPrefs";
-    public static final String DISPLAY_NAME_KEY = "username";
-
-    // TODO: Add member variables here:
     private String mDate;
-    // UI references.
     private TextInputEditText mFullNameView;
     private TextInputEditText mEmailView;
     private TextInputEditText mUsernameView;
     private TextInputEditText mPasswordView;
     private TextInputEditText mConfirmPasswordView;
-    private TextInputEditText eText;
-    // Firebase instance variables
     private FirebaseAuth mAuth;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -78,20 +57,15 @@ public class RegisterActivity extends AppCompatActivity {
         mUsernameView = findViewById(R.id.register_username);
 
         // Keyboard sign in action
-        mConfirmPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.integer.register_form_finished || id == EditorInfo.IME_NULL) {
-                    attemptRegistration();
-                    pushtoRightCollection();
-                    return true;
-                }
-                return false;
+        mConfirmPasswordView.setOnEditorActionListener((textView, id, keyEvent) -> {
+            if (id == R.integer.register_form_finished || id == EditorInfo.IME_NULL) {
+                attemptRegistration();
+                pushtoRightCollection();
+                return true;
             }
+            return false;
         });
-
-        // TODO: Get hold of an instance of FirebaseAuth
-    mAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
     }
 
 
@@ -105,11 +79,11 @@ public class RegisterActivity extends AppCompatActivity {
     private static boolean isBetweenAndroidVersions(int min, int max) {
         return Build.VERSION.SDK_INT >= min && Build.VERSION.SDK_INT <= max;
     }
+    // fenetre pour afficher date de naissance
     public void BirthDatePicker(View v) throws ParseException {
         final DatePickerDialog[] picker = new DatePickerDialog[1];
         final TextInputEditText eText;
         eText= findViewById(R.id.editText1);
-        //eText.setInputType(InputType.TYPE_NULL);
         final Calendar cldr = Calendar.getInstance();
         int day = cldr.get(Calendar.DAY_OF_MONTH);
         int month = cldr.get(Calendar.MONTH);
@@ -118,14 +92,10 @@ public class RegisterActivity extends AppCompatActivity {
         if (isBrokenSamsungDevice()) {
             context = new ContextThemeWrapper(RegisterActivity.this, android.R.style.Theme_Holo_Light_Dialog);
         }
-        // date picker dialog  DatePickerDialog.OnDateSetListener listener
-        picker[0] = new DatePickerDialog(context, new DatePickerDialog.OnDateSetListener() {
-                @Override
-                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    eText.setText(dayOfMonth + "-" + (monthOfYear + 1) + "-" + year);
-                    setDate( dayOfMonth + "-" + (monthOfYear + 1) + "-" + year);
-                    }
-                }, year, month, day);
+        picker[0] = new DatePickerDialog(context, (view, year1, monthOfYear, dayOfMonth) -> {
+            eText.setText(dayOfMonth + "-" + (monthOfYear + 1) + "-" + year1);
+            setDate( dayOfMonth + "-" + (monthOfYear + 1) + "-" + year1);
+            }, year, month, day);
         picker[0].getDatePicker().setMaxDate(new Date().getTime());
         picker[0].show();
     }
@@ -135,7 +105,7 @@ public class RegisterActivity extends AppCompatActivity {
         String email = mEmailView.getText().toString().toLowerCase();
         String password = mPasswordView.getText().toString();
         String username = mUsernameView.getText().toString();
-        // Create a new user
+        // creer un nouveau utilisateur
         Map<String, Object> user = new HashMap<>();
         user.put("FullName", fullname);
         user.put("Email", email);
@@ -146,55 +116,37 @@ public class RegisterActivity extends AppCompatActivity {
         int selectedid=Member_Coach.getCheckedRadioButtonId();
         RadioButton UserSelected=findViewById(selectedid);
         String SelectedUser= UserSelected.getText().toString();
+        // si l'utilisateur coche la case membre:
         if (SelectedUser.equals("Membre")) {
             user.put("Team", "");
-            // Add a new document with a generated ID
+            // ajouter un nouveau document à la collection member
             db.collection("member")
                     .add(user)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w("TAG", "Error adding document", e);
-                        }
-                    });
+                    .addOnSuccessListener(documentReference -> Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId()))
+                    .addOnFailureListener(e -> Log.w("TAG", "Error adding document", e));
         }
         else{
+            // si l'utilisateur coche qu'il est coach
+            // ajouter un nouveau document à la collection coach
             db.collection("coach")
                     .add(user)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w("TAG", "Error adding document", e);
-                        }
-                    });
+                    .addOnSuccessListener(documentReference -> Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId()))
+                    .addOnFailureListener(e -> Log.w("TAG", "Error adding document", e));
         }
     }
 
-    // Executed when Sign Up button is pressed.
+    // si l'utilisateur clique sur creer mon compte
     public void signUp(View v) {
         attemptRegistration();
     }
-
+    // verifier si les données entrées sont valides
     private void attemptRegistration() {
-
-        // Reset errors displayed in the form.
+        //initialiser les erreurs à null
         mEmailView.setError(null);
         mPasswordView.setError(null);
         mFullNameView.setError(null);
         mUsernameView.setError(null);
-        // Store values at the time of the login attempt.
+        // récupérer les donnees entrées dans les cases
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
         String fullname = mFullNameView.getText().toString();
@@ -203,31 +155,32 @@ public class RegisterActivity extends AppCompatActivity {
         boolean cancel = false;
         View focusView = null;
 
-        // Check for a valid password, if the user entered one.
+        //verifier si le password entré est valide
         if (TextUtils.isEmpty(password) || !isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
         }
-        //Check for Username not null
+        //verifier si username est non null
         if (TextUtils.isEmpty(username)) {
             mUsernameView.setError(getString(R.string.error_field_required));
             focusView = mUsernameView;
             cancel = true;
         }
-        if (username.toString().contains(" ")){
+        // verifier si username contient un espace
+        if (username.contains(" ")){
             mUsernameView.setError("Ce champ ne doit pas contenir un espace");
             focusView = mUsernameView;
             cancel = true;
         }
 
-        //Check for FullName not null
+        //verifier si le nom n'est pas nul
         if (TextUtils.isEmpty(fullname)) {
             mFullNameView.setError(getString(R.string.error_field_required));
             focusView = mFullNameView;
             cancel = true;
         }
-        // Check for a valid email address.
+        // verifier si l'email est valide
         if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
@@ -239,24 +192,19 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
+            // il existe une erreur, on l'affiche sur la case correspondante
             focusView.requestFocus();
         } else {
-            //TODO: add user to collection
-            //pushtoRightCollection();
-            // TODO: Call create FirebaseUser() here
+            // toutes les conditions sont valides, on crée un utilisateur dans firebase
             createFirebaseUser();
         }
     }
 
     private boolean isEmailValid(String email) {
-        // You can add more checking logic here.
         return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Add own logic to check for a valid password (minimum 6 characters)
         String ConfirmPassword =mConfirmPasswordView.getText().toString();
         return ConfirmPassword.equals(password) && password.length()>4;
     }
@@ -264,32 +212,26 @@ public class RegisterActivity extends AppCompatActivity {
         Intent intent = new Intent(this, com.choubapp.running.MainActivity.class);
         startActivity(intent);
     }
-    // TODO: Create a Firebase user
+    //creer un utilisateur sur Firebase
     private  void  createFirebaseUser (){
         String email = mEmailView.getText().toString().toLowerCase();
         String password = mPasswordView.getText().toString();
         Toast.makeText(this,"Registration in Progress...",Toast.LENGTH_SHORT).show();
-        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                Log.d("running : " ,"create user" + task.isSuccessful());
-                if (!task.isSuccessful()) {
-                    Log.d("running :"," user creation failed");
-                    showErrorDialog("Registration Attempt Failed!");
-                } else{
-                    pushtoRightCollection();
-                    Intent intent =new Intent(RegisterActivity.this,MainActivity.class);
-                    finish();
-                    startActivity(intent);
-                }
+        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
+            Log.d("running : " ,"create user" + task.isSuccessful());
+            if (!task.isSuccessful()) {
+                Log.d("running :"," user creation failed");
+                showErrorDialog("Registration Attempt Failed!");
+            } else{
+                // ajouter les donnees de cet utilisateur dans la bonne collection
+                pushtoRightCollection();
+                Intent intent =new Intent(RegisterActivity.this,MainActivity.class);
+                finish();
+                startActivity(intent);
             }
         });
     }
-
-    // TODO: Save the display name to Shared Preferences
-
-
-    // TODO: Create an alert dialog to show in case registration failed
+    // fenetre d'erreur d'inscription
     private void showErrorDialog (String message) {
     new AlertDialog.Builder(this)
             .setTitle("Oops")

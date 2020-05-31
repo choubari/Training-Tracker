@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -39,7 +40,7 @@ public class TrainingActivity extends AppCompatActivity {
     DocumentReference TrainingTracking ;
     TextView countdown;
     Date minDate;  Timestamp started;
-    Boolean alreadyStarted = false , alreadyFinished =false , running=true;
+    Boolean alreadyStarted = false , running=true;
     TextView next;
     Button startButton;
     ArrayList<Timestamp> Dates = new ArrayList<>();
@@ -54,7 +55,7 @@ public class TrainingActivity extends AppCompatActivity {
         email= intent.getStringExtra(USER_DATA);
         UserFullname=intent.getStringExtra("userFullName");
         UserUsername=intent.getStringExtra("username");
-        getCoachMail(teamID);
+        getCoachMail();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training);
         startButton =findViewById(R.id.startMemberbutton);
@@ -62,163 +63,98 @@ public class TrainingActivity extends AppCompatActivity {
         replaceProgressbar();
     }
     private void replaceProgressbar(){
-        Trainings.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    ProgressBar progressBar;
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        String trainingName = document.getString("TrainingName");
-                        String team_id = document.getString("TeamID");
-
-                        if (trainingName!=null && team_id.equals(teamID) ){
-                            String mdate = document.get("Date").toString();
-                            String mTimeDep = document.get("HeureDep").toString();
-                            String mTimeArr = document.get("HeureArr").toString();
-                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-                            Date parsedDateDep=null;
-                            Date parsedDateArr=null;
-                            try {
-                                parsedDateDep = dateFormat.parse(mdate +" "+mTimeDep);
-                                Timestamp timestampDep = new Timestamp(parsedDateDep.getTime());
-                                parsedDateArr = dateFormat.parse(mdate +" "+mTimeArr);
-                                Timestamp timestampArr = new Timestamp(parsedDateArr.getTime());
-                                Date datee= new Date();
-                                Timestamp mytime = new Timestamp(datee.getTime());
-                                if(mytime.before(timestampDep)){
-                                    Dates.add(timestampDep);
-                                    IDs.add(document.getId());
-                                }
-                                if(mytime.before(timestampArr) && mytime.after(timestampDep)){
-                                    alreadyStarted =true;
-                                    NextTrainingID = document.getId();
-                                    started = timestampDep;
-                                }
-                                if(mytime.after(timestampArr)){
-                                    alreadyFinished =true;
-                                }
-                                updateText();
-                            } catch(Exception e) {
-                                System.out.println("Exception :" + e);
+// chercher la date la plus proche du prochain entrainement
+        Trainings.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    String trainingName = document.getString("TrainingName");
+                    String team_id = document.getString("TeamID");
+                    if (trainingName!=null && team_id.equals(teamID) ){
+                        String mdate = document.get("Date").toString();
+                        String mTimeDep = document.get("HeureDep").toString();
+                        String mTimeArr = document.get("HeureArr").toString();
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+                        Date parsedDateDep=null;
+                        Date parsedDateArr=null;
+                        try {
+                            parsedDateDep = dateFormat.parse(mdate +" "+mTimeDep);
+                            Timestamp timestampDep = new Timestamp(parsedDateDep.getTime());
+                            parsedDateArr = dateFormat.parse(mdate +" "+mTimeArr);
+                            Timestamp timestampArr = new Timestamp(parsedDateArr.getTime());
+                            Date datee= new Date();
+                            Timestamp mytime = new Timestamp(datee.getTime());
+                            if(mytime.before(timestampDep)){
+                                Dates.add(timestampDep);
+                                IDs.add(document.getId());
                             }
-                        }
-                    }
-
-                }else{Log.d("TAG", "Error getting document: "+task.getException());}
-                updateText();
-            }
-        });
-        /*    @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                System.out.println("helll" + CoachMail + " "+teamID);
-                if (task.isSuccessful()) {
-                    System.out.println("helllo");
-                    for (DocumentSnapshot document : task.getResult()) {
-                        String trainingName = document.getString("TrainingName");
-                        System.out.println("name"+trainingName);
-                        if (trainingName!=null){
-                            String mdate = document.get("Date").toString();
-                            String mTimeDep = document.get("HeureDep").toString();
-                            String mTimeArr = document.get("HeureArr").toString();
-                            //String[] Str = mdate.split("-", 2);
-                            //String[] Tme = mdate.split(":", 1);
-                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-                            Date parsedDateDep=null;
-                            Date parsedDateArr=null;
-                            String DateDep = mdate +" "+mTimeDep;
-                            String DateArr = mdate +" "+mTimeArr;
-                            System.out.println("Dates  "+DateDep+"  "+DateArr);
-
-                            try {
-                                parsedDateDep =(Date) dateFormat.parse(DateDep);
-                                Timestamp timestampDep = new Timestamp(parsedDateDep.getTime());
-                                parsedDateArr =(Date) dateFormat.parse(DateArr);
-                                Timestamp timestampArr = new Timestamp(parsedDateArr.getTime());
-                                System.out.println("parsedDates  "+parsedDateDep+"  "+parsedDateArr);
-                                System.out.println("Timestamps  "+timestampDep+"  "+timestampArr);
-                                Date datee= new Date();
-                                Timestamp mytime = new Timestamp(datee.getTime());
-                                if(mytime.before(timestampDep)){
-                                    Dates.add(timestampDep);
-                                    System.out.println(Dates);
-                                    IDs.add(document.getId());
-                                }
-                                if(mytime.before(timestampArr) && mytime.after(timestampDep)){
-                                    alreadyStarted =true;
-                                    NextTrainingID = document.getId();
-                                    started = timestampDep;
-                                }
-                                if(mytime.after(timestampArr)){
-                                    alreadyFinished =true;
-                                }
-                                progressBar=findViewById(R.id.progressBar2);
-                                progressBar.setVisibility(View.GONE);
-                                updateText();
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                                System.out.println("Exception :" + e);
+                            if(mytime.before(timestampArr) && mytime.after(timestampDep)){
+                                alreadyStarted =true;
+                                NextTrainingID = document.getId();
+                                started = timestampDep;
                             }
+                        } catch(Exception e) {
+                            System.out.println("Exception :" + e);
                         }
                     }
                 }
-            }
-        }); */
+
+            }else{Log.d("TAG", "Error getting document: "+task.getException());}
+            Handler handler = new Handler();
+            handler.postDelayed(() -> updateText(), 2000);
+        });
     }
     private void updateText(){
+        // mise a jour du text
         progressBar=findViewById(R.id.progressBar2);
         progressBar.setVisibility(View.GONE);
-        //look for the closet date
-        System.out.println("after for"+Dates);
+        //mise à jour du text selon l'existance du proche entrainement
         next=findViewById(R.id.nexttraining);
-        if (Dates.isEmpty()) {
+        if (Dates.isEmpty() && !alreadyStarted) {
              next.setText("Vous n'avez aucun prochain entraînement");
-        }else { if(alreadyStarted) {
-            next.setText("Votre entraînement est déjà commencé depuis : \n");
-            minDate = started;
-            startTimer(minDate);
-            //started
-        } else{
-            minDate = Collections.min(Dates);
-            int index = Dates.indexOf(minDate);
-            NextTrainingID = IDs.get(index);
-            //System.out.println(minDate + " " + NextTrainingID);
-            String[] SplitedDate = minDate.toString().split(" ", 2);
-            next.setText("Votre prochain entraînement sera le : \n" + SplitedDate[0] + " à " + SplitedDate[1] + "\n" + "il vous reste :");
-            //startTimer(minDate);
-            startTimer(minDate);
+        }else {
+            if(alreadyStarted) {
+                next.setText("Votre entraînement est déjà commencé depuis : \n");
+                minDate = started;
+                startTimer(minDate);
+            }else{
+                minDate = Collections.min(Dates);
+                int index = Dates.indexOf(minDate);
+                NextTrainingID = IDs.get(index);
+                String[] SplitedDate = minDate.toString().split(" ", 2);
+                next.setText("Votre prochain entraînement sera le : \n" + SplitedDate[0] + " à " + SplitedDate[1] + "\n" + "il vous reste :");
+                startTimer(minDate);
 
-        }
+            }
         }
     }
     private void startTimer(Date end) {
+        // thread pour demarrer le compteur
         thread = new Thread() {
             @Override
             public void run() {
-                System.out.println("I am on thread1");
                 try {
-                    System.out.println("I am on thread2" + running);
                     while (!isInterrupted() && running) {
-                        System.out.println("I am on thread3");
                         Thread.sleep(1000);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                SimpleDateFormat simpleDateFormat =
-                                        new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.s");
-                                Date date2=null;
-                                try {
-                                    next=findViewById(R.id.nexttraining);
-                                    Date date1 = new Date();
+                        runOnUiThread(() -> {
+                            SimpleDateFormat simpleDateFormat =
+                                    new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.s");
+                            Date date2=null;
+                            try {
+                                next=findViewById(R.id.nexttraining);
+                                Date date1 = new Date();
 
-                                    date2 = simpleDateFormat.parse(String.valueOf(end));
-                                    if (alreadyStarted) {
+                                date2 = simpleDateFormat.parse(String.valueOf(end));
+                                if (alreadyStarted) {
+                                    if (date2 != null) {
                                         printDifference(date2, date1);
                                     }
-                                    else printDifference(date1, date2);
-
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
                                 }
+                                else if (date2 != null) {
+                                    printDifference(date1, date2);
+                                }
+
+                            } catch (ParseException e) {
+                                e.printStackTrace();
                             }
                         });
                     }
@@ -226,12 +162,11 @@ public class TrainingActivity extends AppCompatActivity {
                 }
             }
         };
-
         thread.start();
 
     }
     public void printDifference(Date startDate, Date endDate){
-
+        // afficher difference entre deux dates en jours, heurs, minutes et secondes
         long different = endDate.getTime() - startDate.getTime();
         if (different<= 1800000 || alreadyStarted) {
             startButton =findViewById(R.id.startMemberbutton);
@@ -260,30 +195,28 @@ public class TrainingActivity extends AppCompatActivity {
 
     }
 
+// clique sur le boutton commencer l'entrainment
     public void StartTraining(View v){
         TrainingTracking = db.collection("tracking").document(NextTrainingID);
-        TrainingTracking.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        Log.d("TAG", "Document exists!");
-                        String trainingStatus = document.get("Status").toString();
-                        checkTrainingStatus(trainingStatus);
-                    } else {
-                        Log.d("TAG", "Document does not exist!");
-                        Toast.makeText(getApplicationContext(), "Votre entraînement n'est encore démarré par votre Coach, Veuillez Patienter ..", Toast.LENGTH_LONG).show();
-                    }
+        TrainingTracking.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    Log.d("TAG", "Document exists!");
+                    String trainingStatus = document.get("Status").toString();
+                    checkTrainingStatus(trainingStatus);
                 } else {
-                    Log.d("TAG", "Failed with: ", task.getException());
+                    Log.d("TAG", "Document does not exist!");
+                    Toast.makeText(getApplicationContext(), "Votre entraînement n'est encore démarré par votre Coach, Veuillez Patienter ..", Toast.LENGTH_LONG).show();
                 }
+            } else {
+                Log.d("TAG", "Failed with: ", task.getException());
             }
         });
     }
 
     private void checkTrainingStatus(String status){
-
+    // verifier si le coach a démarré l'entrainement
         if (status.equals("start")) {
             thread.interrupt();
             Intent intent = new Intent(this, MemberTrainingTime.class);
@@ -299,22 +232,20 @@ public class TrainingActivity extends AppCompatActivity {
                 Toast.makeText(this, "Votre entraînement est déjà arrêté par votre Coach", Toast.LENGTH_SHORT).show();
         }
     }
-    public void getCoachMail(String id){
+    // recupere l eamil du coach
+    public void getCoachMail(){
         CollectionReference equipe = db.collection("Equipe");
         equipe.whereEqualTo("ID", teamID)
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                Log.d("TAG", document.getId() + " => " + document.getData());
-                                CoachMail = document.get("Email Coach").toString();
-                            }
-
-                        } else {
-                            Log.d("TAG", "Error getting documents: ", task.getException());
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Log.d("TAG", document.getId() + " => " + document.getData());
+                            CoachMail = document.get("Email Coach").toString();
                         }
+
+                    } else {
+                        Log.d("TAG", "Error getting documents: ", task.getException());
                     }
                 });
 

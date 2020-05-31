@@ -13,8 +13,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -100,11 +98,11 @@ public class MemberTrainingTime extends AppCompatActivity implements OnMapReadyC
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
-        mMapView = (MapView) findViewById(R.id.user_list_map);
+        mMapView =  findViewById(R.id.user_list_map);
         mMapView.onCreate(mapViewBundle);
         mMapView.getMapAsync(this);
 
-        count = (TextView) findViewById(R.id.stepcount);
+        count =  findViewById(R.id.stepcount);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
@@ -126,21 +124,18 @@ public class MemberTrainingTime extends AppCompatActivity implements OnMapReadyC
 
     }
     private void GetStartEndPoints(){
-        trackingTraining.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        Log.d("TAG", document.getId() + " => " + document.getData());
-                        GeoPoint Start = (GeoPoint) document.get("Start");
-                        GeoPoint End = (GeoPoint) document.get("End");
-                        mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(Start.getLatitude(), Start.getLongitude())).title("Début").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-                        mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(End.getLatitude(), End.getLongitude())).title("Fin").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                    }
-                } else {
-                    Log.d("TAG", "Error getting documents: ", task.getException());
+        trackingTraining.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    Log.d("TAG", document.getId() + " => " + document.getData());
+                    GeoPoint Start = (GeoPoint) document.get("Start");
+                    GeoPoint End = (GeoPoint) document.get("End");
+                    mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(Start.getLatitude(), Start.getLongitude())).title("Début").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(End.getLatitude(), End.getLongitude())).title("Fin").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                 }
+            } else {
+                Log.d("TAG", "Error getting documents: ", task.getException());
             }
         });
 
@@ -178,11 +173,9 @@ public class MemberTrainingTime extends AppCompatActivity implements OnMapReadyC
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Pour accéder à l'entraînement, vous devez activer GPS. Voulez-vous l'activer ?")
                 .setCancelable(false)
-                .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
-                    }
+                .setPositiveButton("Oui", (dialog, id) -> {
+                    Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
                 });
         final AlertDialog alert = builder.create();
         alert.show();
@@ -334,37 +327,21 @@ public class MemberTrainingTime extends AppCompatActivity implements OnMapReadyC
     }
     private void updateAvailability(){
         userInfoDoc.update("Availability", false)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d("TAG", "DocumentSnapshot successfully updated!");
-                        Intent intent = new Intent(getApplicationContext(), DashboardActivity.class);
-                        finish();
-                        startActivity(intent);
-                    }
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("TAG", "DocumentSnapshot successfully updated!");
+                    Intent intent = new Intent(getApplicationContext(), DashboardActivity.class);
+                    finish();
+                    startActivity(intent);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("TAG", "Error updating document", e);
-                    }
-                });
+                .addOnFailureListener(e -> Log.w("TAG", "Error updating document", e));
     }
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Sortir");
         builder.setMessage("Voules-vous quitter cet entraînement? ");
-        builder.setPositiveButton("Oui", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                updateAvailability();
-            }
-        });
-        builder.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.dismiss();
-            }
-        });
+        builder.setPositiveButton("Oui", (dialog, id) -> updateAvailability());
+        builder.setNegativeButton("Annuler", (dialog, id) -> dialog.dismiss());
         builder.show();
     }
     @Override
@@ -476,8 +453,8 @@ public class MemberTrainingTime extends AppCompatActivity implements OnMapReadyC
         int elapsedMillis = (int) (SystemClock.elapsedRealtime() - chronometer.getBase());
         userInfoDoc.update(
                 "Steps", TotalSteps,
-                "TotalTime", (int)(elapsedMillis/1000)
-        ).addOnCompleteListener((OnCompleteListener<Void>) task -> {
+                "TotalTime", elapsedMillis/1000
+        ).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Log.d("TAG", "Steps & chrono updated");
             }
