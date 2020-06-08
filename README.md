@@ -1,11 +1,11 @@
-# TrainingTracker
+# :runner: TrainingTracker :running:
 An android app to manage trainings between a coach and his team members. This is a school project for ENSIAS (National School of Applied Sciences in Rabat, Morocco) using Java and Firebase.
 
 <p align="center">
   <img  src="Screenshots/banner.jpg" >
 
 
-## Project Config
+##  :zap: Project Config
 
 ```
 applicationId "com.choubapp.running"
@@ -14,7 +14,7 @@ minSdkVersion 19
 targetSdkVersion 29
 ```
 
-### Setup:
+## :key: Setup:
 
 Firebase [Setup and Documentation](https://firebase.google.com/docs/android/setup) for Android
 
@@ -24,14 +24,14 @@ We've used :
 * Firebase Storage to save profil pictures uploaded by the users.
 
 
-## Screenshots:
+## :iphone: Screenshots :
 
 **SignUp :**
 
 <p align="center">
   <img  src="Screenshots/signup.jpg" >
 
-**Member Dashboard :**
+**:boy: Member Dashboard :**
 
 <p align="center">
   <img  src="Screenshots/member.jpg" >
@@ -44,7 +44,7 @@ We've used :
 
 ##
 
-**Coach Dashboard :**
+**:cop: Coach Dashboard :**
 
 <p align="center">
   <img  src="Screenshots/coach.jpg" >
@@ -57,7 +57,7 @@ We've used :
 
 ##
 
-**Training Time :**
+**:alarm_clock: Training Time :**
 
 <p align="center">
   <img  src="Screenshots/trainingTime.jpg" >
@@ -65,7 +65,7 @@ We've used :
 
 
 
-## External Libraries : 
+## :bulb: External Libraries : 
 
 [Picasso](https://github.com/square/picasso)
 
@@ -77,7 +77,7 @@ We've used :
 
 ##
 
-### Graphic Assets:
+### :sparkles: Graphic Assets :
 
 Home Screen Illustration : [Freepik](freepik.com)
 
@@ -85,13 +85,13 @@ Gradient Icons : [Roundicons](https://roundicons.com/gradient-icons-pack/)
 
 ##
 
-### Somethings to fix or add :
+### :paperclip: Somethings to fix or add :
 
 - [ ] Date picker Dialog isn't working for API 19-22
 - [ ] Push notifications to team members when the coach sends messages or the next training is near to start
 - [X] Show date and time of each message
 
-## Support :
+## :sparkling_heart: Support :
 
 <a href="https://www.buymeacoffee.com/choubari" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/lato-orange.png" alt="Buy Me A Coffee" width="140px" heigh="50px" ></a>
 
