@@ -16,7 +16,8 @@ targetSdkVersion 29
 
 ## :key: Setup:
 
-Firebase [Setup and Documentation](https://firebase.google.com/docs/android/setup) for Android
+* Create a Firebase Project : Firebase [Setup and Documentation](https://firebase.google.com/docs/android/setup) for Android
+* Get your own Google Maps [API Key](https://developers.google.com/maps/documentation/android-sdk/get-api-key) and add it to strings.xml 
 
 We've used : 
 * Firebase CloudFirestore to store users, teams and trainings data. 
