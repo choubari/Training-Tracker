@@ -1,0 +1,51 @@
+<resources>
+    <!--Renaming Month to French Language-->
+    <array name="material_calendar_months_array">
+        <item>Janvier</item>
+        <item>Fevrier</item>
+        <item>Mars</item>
+        <item>Avril</item>
+        <item>Mai</item>
+        <item>Juin</item>
+        <item>Juillet</item>
+        <item>Aout</item>
+        <item>Septembre</item>
+        <item>Octobre</item>
+        <item>Novembre</item>
+        <item>Decembre</item>
+    </array>
+    <string name="app_name">Training Tracker</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_register">Register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="action_sign_up">Sign up</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">Password too short or does not match</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+
+
+    <string name="error_field_required">This field is required</string>
+
+
+    <!--Calendar View-->
+    <string name="equipes">Equipes</string>
+    <!--Days Abreviation in French-->
+    <string name="material_calendar_monday">L</string>
+    <string name="material_calendar_tuesday">M</string>
+    <string name="material_calendar_wednesday">Me</string>
+    <string name="material_calendar_thursday">J</string>
+    <string name="material_calendar_friday">V</string>
+    <string name="material_calendar_saturday">S</string>
+
+    <string name="material_calendar_sunday">D</string>
+
+    <string name="material_calendar_today_button">Aujourdhui</string>
+    <string name="material_calendar_positive_button">OK</string>
+    <string name="material_calendar_negative_button">Annuler</string>
+    <string name="sample_message">Hello!</string>
+    <string name="prompt_msg">Type a message</string>
+    <string name="action_send">Send</string>
+
+
+    <string name="google_maps_APIkey">ADD YOUR GOOGLE MAPS API HERE</string>
+</resources>
