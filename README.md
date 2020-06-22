@@ -80,7 +80,7 @@ We've used :
 
 ### :sparkles: Graphic Assets :
 
-Home Screen Illustration : [Freepik](freepik.com)
+Home Screen Illustration : [Freepik](https://freepik.com)
 
 Gradient Icons : [Roundicons](https://roundicons.com/gradient-icons-pack/)
 
