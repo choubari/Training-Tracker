@@ -89,6 +89,7 @@ Gradient Icons : [Roundicons](https://roundicons.com/gradient-icons-pack/)
 ### :paperclip: Somethings to fix or add :
 
 - [ ] Date picker Dialog isn't working for API 19-22
+- [ ] Refactor the code to MVC architecture and optimize call Firebase functions.
 - [ ] Push notifications to team members when the coach sends messages or the next training is near to start
 - [X] Show date and time of each message
 
