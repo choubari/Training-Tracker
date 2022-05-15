@@ -1,4 +1,4 @@
-# :runner: TrainingTracker :running:
+# :runner: TrainingTracker :running: | Unmaintained Project
 An android app to manage trainings between a coach and his team members. This is a school project for ENSIAS (National School of Applied Sciences in Rabat, Morocco) using Java and Firebase.
 
 <p align="center">
